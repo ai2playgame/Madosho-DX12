@@ -8,22 +8,23 @@ using namespace Microsoft::WRL;
 using namespace DirectX;
 
 // ---------------------------------------------------------------- //
-//  –³–¼–¼‘O‹óŠÔ
+//  ç„¡ååå‰ç©ºé–“
 // ---------------------------------------------------------------- //
 namespace {
-	// PathOperator.hpp‚ÉˆÚ÷
+	// PathOperator.hppã«ç§»è­²
 }
 
 // ---------------------------------------------------------------- //
-//  “à•”ƒNƒ‰ƒXÀ‘•
+//  å†…éƒ¨ã‚¯ãƒ©ã‚¹å®Ÿè£…
 // ---------------------------------------------------------------- //
 
+// ãƒã‚¤ãƒˆå¢ƒç•Œã‚’16Byteã«å›ºå®šã—ã¦å‹•çš„ç¢ºä¿ã™ã‚‹
 void* PMDActor::Transform::operator new(size_t size) {
 	return _aligned_malloc(size, 16);
 }
 
 // ---------------------------------------------------------------- //
-//  publicƒƒ\ƒbƒhÀ‘•
+//  publicãƒ¡ã‚½ãƒƒãƒ‰å®Ÿè£…
 // ---------------------------------------------------------------- //
 
 PMDActor::PMDActor(const char* filepath,PMDRenderer& renderer, float angle)
@@ -47,7 +48,7 @@ void PMDActor::draw() {
 	m_dx12Ref.commandList()->SetGraphicsRootDescriptorTable(1, m_transformHeap->GetGPUDescriptorHandleForHeapStart());
 
 	ID3D12DescriptorHeap* mdh[] = { m_materialHeap.Get() };
-	// ƒ}ƒeƒŠƒAƒ‹
+	// ãƒãƒ†ãƒªã‚¢ãƒ«
 	m_dx12Ref.commandList()->SetDescriptorHeaps(1, mdh);
 
 	auto materialH = m_materialHeap->GetGPUDescriptorHandleForHeapStart();
@@ -69,11 +70,11 @@ void PMDActor::update() {
 }
 
 // ---------------------------------------------------------------- //
-//  privateƒƒ\ƒbƒhÀ‘•
+//  privateãƒ¡ã‚½ãƒƒãƒ‰å®Ÿè£…
 // ---------------------------------------------------------------- //
 
 HRESULT PMDActor::createTransformView() {
-	// GPUƒoƒbƒtƒ@ì¬
+	// GPUãƒãƒƒãƒ•ã‚¡ä½œæˆ
 	auto buffSize = sizeof(Transform);
 	buffSize = (buffSize + 0xff)&~0xff;
 	auto result = m_dx12Ref.device()->CreateCommittedResource(
@@ -89,7 +90,7 @@ HRESULT PMDActor::createTransformView() {
 		return result;
 	}
 
-	// ƒ}ƒbƒv‚ÆƒRƒs[
+	// ãƒãƒƒãƒ—ã¨ã‚³ãƒ”ãƒ¼
 	result = m_transformBuff->Map(0, nullptr, (void**)&m_mappedTransform);
 	if (FAILED(result)) {
 		assert(SUCCEEDED(result));
@@ -97,15 +98,15 @@ HRESULT PMDActor::createTransformView() {
 	}
 	*m_mappedTransform = m_transform;
 
-	// ƒrƒ…[‚Ìì¬
-	D3D12_DESCRIPTOR_HEAP_DESC transformDescHeapDesc = {};
-	transformDescHeapDesc.NumDescriptors = 1; // ‚Æ‚è‚ ‚¦‚¸ƒ[ƒ‹ƒh‚Ğ‚Æ‚Â
+	// ãƒ“ãƒ¥ãƒ¼ã®ä½œæˆ
+	D3D12_DESCRIPTOR_HEAP_DESC transformDescHeapDesc{};
+	transformDescHeapDesc.NumDescriptors = 1; // ã¨ã‚Šã‚ãˆãšãƒ¯ãƒ¼ãƒ«ãƒ‰ã²ã¨ã¤
 	transformDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	transformDescHeapDesc.NodeMask = 0;
 
-	transformDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // ƒfƒXƒNƒŠƒvƒ^ƒq[ƒví•Ê
+	transformDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ç¨®åˆ¥
 	result = m_dx12Ref.device()->CreateDescriptorHeap(&transformDescHeapDesc,
-		IID_PPV_ARGS(m_transformHeap.ReleaseAndGetAddressOf())); // ¶¬
+		IID_PPV_ARGS(m_transformHeap.ReleaseAndGetAddressOf())); // ç”Ÿæˆ
 	if (FAILED(result)) {
 		assert(SUCCEEDED(result));
 		return result;
@@ -120,13 +121,13 @@ HRESULT PMDActor::createTransformView() {
 }
 
 HRESULT PMDActor::createMaterialData() {
-	// ƒ}ƒeƒŠƒAƒ‹ƒoƒbƒtƒ@‚ğì¬
+	// ãƒãƒ†ãƒªã‚¢ãƒ«ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆ
 	auto materialBuffSize = sizeof(MaterialForHlsl);
 	materialBuffSize = (materialBuffSize + 0xff)&~0xff;
 	auto result = m_dx12Ref.device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(materialBuffSize*m_materials.size()),// –Ü‘Ì‚È‚¢‚¯‚Çd•û‚È‚¢‚Å‚·‚Ë
+		&CD3DX12_RESOURCE_DESC::Buffer(materialBuffSize*m_materials.size()),// å‹¿ä½“ãªã„ã‘ã©ä»•æ–¹ãªã„ã§ã™ã­
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(m_materialBuff.ReleaseAndGetAddressOf())
@@ -136,7 +137,7 @@ HRESULT PMDActor::createMaterialData() {
 		return result;
 	}
 
-	// GPUã‚Ìƒƒ‚ƒŠ‚Éƒ}ƒbƒsƒ“ƒO
+	// GPUä¸Šã®ãƒ¡ãƒ¢ãƒªã«ãƒãƒƒãƒ”ãƒ³ã‚°
 	char* mapMaterial = nullptr;
 	result = m_materialBuff->Map(0, nullptr, (void**)&mapMaterial);
 	if (FAILED(result)) {
@@ -144,8 +145,8 @@ HRESULT PMDActor::createMaterialData() {
 		return result;
 	}
 	for (auto& m : m_materials) {
-		*((MaterialForHlsl*)mapMaterial) = m.material; // ƒf[ƒ^ƒRƒs[
-		mapMaterial += materialBuffSize; // Ÿ‚ÌƒAƒ‰ƒCƒƒ“ƒgˆÊ’u‚Ü‚Åi‚ß‚é
+		*((MaterialForHlsl*)mapMaterial) = m.material; // ãƒ‡ãƒ¼ã‚¿ã‚³ãƒ”ãƒ¼
+		mapMaterial += materialBuffSize; // æ¬¡ã®ã‚¢ãƒ©ã‚¤ãƒ¡ãƒ³ãƒˆä½ç½®ã¾ã§é€²ã‚ã‚‹
 	}
 	m_materialBuff->Unmap(0, nullptr);
 
@@ -155,12 +156,12 @@ HRESULT PMDActor::createMaterialData() {
 
 HRESULT PMDActor::createMaterialAndTextureView() {
 	D3D12_DESCRIPTOR_HEAP_DESC materialDescHeapDesc = {};
-	materialDescHeapDesc.NumDescriptors = m_materials.size() * 5; // ƒ}ƒeƒŠƒAƒ‹”‚Ô‚ñ(’è”1‚ÂAƒeƒNƒXƒ`ƒƒ3‚Â)
+	materialDescHeapDesc.NumDescriptors = m_materials.size() * 5; // ãƒãƒ†ãƒªã‚¢ãƒ«æ•°ã¶ã‚“(å®šæ•°1ã¤ã€ãƒ†ã‚¯ã‚¹ãƒãƒ£3ã¤)
 	materialDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	materialDescHeapDesc.NodeMask = 0;
 
-	materialDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // ƒfƒXƒNƒŠƒvƒ^ƒq[ƒví•Ê
-	auto result = m_dx12Ref.device()->CreateDescriptorHeap(&materialDescHeapDesc, IID_PPV_ARGS(m_materialHeap.ReleaseAndGetAddressOf()));//¶¬
+	materialDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ç¨®åˆ¥
+	auto result = m_dx12Ref.device()->CreateDescriptorHeap(&materialDescHeapDesc, IID_PPV_ARGS(m_materialHeap.ReleaseAndGetAddressOf()));//ç”Ÿæˆ
 	if (FAILED(result)) {
 		assert(SUCCEEDED(result));
 		return result;
@@ -172,13 +173,13 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 	matCBVDesc.SizeInBytes = materialBuffSize;
 	
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // TODO:Œãq
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D; // 2DƒeƒNƒXƒ`ƒƒ
-	srvDesc.Texture2D.MipLevels = 1; // ƒ~ƒbƒvƒ}ƒbƒv‚Íg—p‚µ‚È‚¢‚Ì‚Å1
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // TODO:å¾Œè¿°
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D; // 2Dãƒ†ã‚¯ã‚¹ãƒãƒ£
+	srvDesc.Texture2D.MipLevels = 1; // ãƒŸãƒƒãƒ—ãƒãƒƒãƒ—ã¯ä½¿ç”¨ã—ãªã„ã®ã§1
 	CD3DX12_CPU_DESCRIPTOR_HANDLE matDescHeapH(m_materialHeap->GetCPUDescriptorHandleForHeapStart());
 	auto incSize = m_dx12Ref.device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	for (int i = 0; i < m_materials.size(); ++i) {
-		// ƒ}ƒeƒŠƒAƒ‹ŒÅ’èƒoƒbƒtƒ@ƒrƒ…[
+		// ãƒãƒ†ãƒªã‚¢ãƒ«å›ºå®šãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼
 		m_dx12Ref.device()->CreateConstantBufferView(&matCBVDesc, matDescHeapH);
 		matDescHeapH.ptr += incSize;
 		matCBVDesc.BufferLocation += materialBuffSize;
@@ -226,11 +227,11 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 }
 
 HRESULT PMDActor::loadPMDFile(const char* path) {
-	// PMDƒwƒbƒ_\‘¢‘Ì
+	// PMDãƒ˜ãƒƒãƒ€æ§‹é€ ä½“
 	struct PMDHeader {
-		float version; // —áF00 00 80 3F == 1.00
-		char model_name[20]; // ƒ‚ƒfƒ‹–¼
-		char comment[256]; // ƒ‚ƒfƒ‹ƒRƒƒ“ƒg
+		float version; // ä¾‹ï¼š00 00 80 3F == 1.00
+		char model_name[20]; // ãƒ¢ãƒ‡ãƒ«å
+		char comment[256]; // ãƒ¢ãƒ‡ãƒ«ã‚³ãƒ¡ãƒ³ãƒˆ
 	};
 	char signature[3];
 	PMDHeader pmdheader{};
@@ -245,34 +246,20 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	fread(signature, sizeof(signature), 1, fp);
 	fread(&pmdheader, sizeof(pmdheader), 1, fp);
 
-	unsigned int vertNum; // ’¸“_”
+	unsigned int vertNum; // é ‚ç‚¹æ•°
 	fread(&vertNum, sizeof(vertNum), 1, fp);
 
 
-#pragma pack(1)// ‚±‚±‚©‚ç1ƒoƒCƒgƒpƒbƒLƒ“ƒOcƒAƒ‰ƒCƒƒ“ƒg‚Í”­¶‚µ‚È‚¢
-	// PMDƒ}ƒeƒŠƒAƒ‹\‘¢‘Ì
-	struct PMDMaterial {
-		XMFLOAT3 diffuse; // ƒfƒBƒtƒ…[ƒYF
-		float alpha; // ƒfƒBƒtƒ…[ƒYƒ¿
-		float specularity;// ƒXƒyƒLƒ…ƒ‰‚Ì‹­‚³(æZ’l)
-		XMFLOAT3 specular; // ƒXƒyƒLƒ…ƒ‰F
-		XMFLOAT3 ambient; // ƒAƒ“ƒrƒGƒ“ƒgF
-		unsigned char toonIdx; // ƒgƒD[ƒ“”Ô†(Œãq)
-		unsigned char edgeFlg;// ƒ}ƒeƒŠƒAƒ‹–ˆ‚Ì—ÖŠsüƒtƒ‰ƒO
-		// 2ƒoƒCƒg‚ÌƒpƒfƒBƒ“ƒO‚ª”­¶II
-		unsigned int indicesNum; // ‚±‚Ìƒ}ƒeƒŠƒAƒ‹‚ªŠ„‚è“–‚½‚éƒCƒ“ƒfƒbƒNƒX”
-		char texFilePath[20]; // ƒeƒNƒXƒ`ƒƒƒtƒ@ƒCƒ‹–¼(ƒvƒ‰ƒXƒAƒ‹ƒtƒ@cŒãq)
-	}; // 70ƒoƒCƒg‚Ì‚Í‚¸c‚Å‚àƒpƒfƒBƒ“ƒO‚ª”­¶‚·‚é‚½‚ß72ƒoƒCƒg
-#pragma pack() // 1ƒoƒCƒgƒpƒbƒLƒ“ƒO‰ğœ
+	// ---------------------------------------------------------------- //
+    //  é ‚ç‚¹æƒ…å ±èª­ã¿è¾¼ã¿ï¼ˆGPUãƒãƒƒãƒ•ã‚¡ã«æ›¸ãè¾¼ã¿ãƒ»ãƒ“ãƒ¥ãƒ¼ä½œæˆï¼‰ 
+    // ---------------------------------------------------------------- //
+	constexpr unsigned int pmdvertex_size = 38; // é ‚ç‚¹1ã¤ã‚ãŸã‚Šã®ã‚µã‚¤ã‚º
+	std::vector<unsigned char> vertices(vertNum * pmdvertex_size); // ãƒãƒƒãƒ•ã‚¡ç¢ºä¿
+	fread(vertices.data(), vertices.size(), 1, fp); // ä¸€æ°—ã«èª­ã¿è¾¼ã¿
 
-	constexpr unsigned int pmdvertex_size = 38; // ’¸“_1‚Â‚ ‚½‚è‚ÌƒTƒCƒY
-	std::vector<unsigned char> vertices(vertNum*pmdvertex_size); // ƒoƒbƒtƒ@Šm•Û
-	fread(vertices.data(), vertices.size(), 1, fp); // ˆê‹C‚É“Ç‚İ‚İ
-
-	unsigned int indicesNum; // ƒCƒ“ƒfƒbƒNƒX”
+	unsigned int indicesNum; // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹æ•°
 	fread(&indicesNum, sizeof(indicesNum), 1, fp);
 
-	// UPLOAD(Šm•Û‚Í‰Â”\)
 	auto result = m_dx12Ref.device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
@@ -286,16 +273,17 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	std::copy(vertices.begin(), vertices.end(), vertMap);
 	m_vb->Unmap(0, nullptr);
 
+	m_vbView.BufferLocation = m_vb->GetGPUVirtualAddress(); // ãƒãƒƒãƒ•ã‚¡ã®ä»®æƒ³ã‚¢ãƒ‰ãƒ¬ã‚¹
+	m_vbView.SizeInBytes = vertices.size(); // å…¨ãƒã‚¤ãƒˆæ•°
+	m_vbView.StrideInBytes = pmdvertex_size; // 1é ‚ç‚¹ã‚ãŸã‚Šã®ãƒã‚¤ãƒˆæ•°
 
-	m_vbView.BufferLocation = m_vb->GetGPUVirtualAddress(); // ƒoƒbƒtƒ@‚Ì‰¼‘zƒAƒhƒŒƒX
-	m_vbView.SizeInBytes = vertices.size(); // ‘SƒoƒCƒg”
-	m_vbView.StrideInBytes = pmdvertex_size; // 1’¸“_‚ ‚½‚è‚ÌƒoƒCƒg”
-
+	// ---------------------------------------------------------------- //
+    //  ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹æƒ…å ±èª­ã¿è¾¼ã¿ï¼ˆGPUãƒãƒƒãƒ•ã‚¡ã«æ›¸ãè¾¼ã¿ãƒ»ãƒ“ãƒ¥ãƒ¼ä½œæˆï¼‰ 
+    // ---------------------------------------------------------------- //
 	std::vector<unsigned short> indices(indicesNum);
-	fread(indices.data(), indices.size() * sizeof(indices[0]), 1, fp); // ˆê‹C‚É“Ç‚İ‚İ
+	fread(indices.data(), indices.size() * sizeof(indices[0]), 1, fp); // ä¸€æ°—ã«èª­ã¿è¾¼ã¿
 
-
-	// İ’è‚ÍAƒoƒbƒtƒ@‚ÌƒTƒCƒYˆÈŠO’¸“_ƒoƒbƒtƒ@‚Ìİ’è‚ğg‚¢‚Ü‚í‚µ‚ÄOK?
+	// è¨­å®šã¯ã€ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚ºä»¥å¤–é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®è¨­å®šã‚’ä½¿ã„ã¾ã‚ã—ã¦OK?
 	result = m_dx12Ref.device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
@@ -304,17 +292,35 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 		nullptr,
 		IID_PPV_ARGS(m_ib.ReleaseAndGetAddressOf()));
 
-	// ì‚Á‚½ƒoƒbƒtƒ@‚ÉƒCƒ“ƒfƒbƒNƒXƒf[ƒ^‚ğƒRƒs[
+	// ä½œã£ãŸãƒãƒƒãƒ•ã‚¡ã«ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒ‡ãƒ¼ã‚¿ã‚’ã‚³ãƒ”ãƒ¼
 	unsigned short* mappedIdx = nullptr;
 	m_ib->Map(0, nullptr, (void**)&mappedIdx);
 	std::copy(indices.begin(), indices.end(), mappedIdx);
 	m_ib->Unmap(0, nullptr);
 
-
-	// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@ƒrƒ…[‚ğì¬
+	// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼ã‚’ä½œæˆ
 	m_ibView.BufferLocation = m_ib->GetGPUVirtualAddress();
 	m_ibView.Format = DXGI_FORMAT_R16_UINT;
 	m_ibView.SizeInBytes = indices.size() * sizeof(indices[0]);
+
+	// ---------------------------------------------------------------- //
+    //  ãƒãƒ†ãƒªã‚¢ãƒ«èª­ã¿è¾¼ã¿ 
+    // ---------------------------------------------------------------- //
+#pragma pack(1) // ã“ã“ã‹ã‚‰1ãƒã‚¤ãƒˆãƒ‘ãƒƒã‚­ãƒ³ã‚°â€¦ã‚¢ãƒ©ã‚¤ãƒ¡ãƒ³ãƒˆã¯ç™ºç”Ÿã—ãªã„
+	// ç”Ÿã®PMDãƒãƒ†ãƒªã‚¢ãƒ«æ§‹é€ ä½“
+	struct PMDMaterial {
+		XMFLOAT3 diffuse; // ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºè‰²
+		float alpha; // ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºÎ±
+		float specularity;// ã‚¹ãƒšã‚­ãƒ¥ãƒ©ã®å¼·ã•(ä¹—ç®—å€¤)
+		XMFLOAT3 specular; // ã‚¹ãƒšã‚­ãƒ¥ãƒ©è‰²
+		XMFLOAT3 ambient; // ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆè‰²
+		unsigned char toonIdx; // ãƒˆã‚¥ãƒ¼ãƒ³ç•ªå·(å¾Œè¿°)
+		unsigned char edgeFlg;// ãƒãƒ†ãƒªã‚¢ãƒ«æ¯ã®è¼ªéƒ­ç·šãƒ•ãƒ©ã‚°
+		// 2ãƒã‚¤ãƒˆã®ãƒ‘ãƒ‡ã‚£ãƒ³ã‚°ãŒç™ºç”Ÿï¼ï¼
+		unsigned int indicesNum; // ã“ã®ãƒãƒ†ãƒªã‚¢ãƒ«ãŒå‰²ã‚Šå½“ãŸã‚‹ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹æ•°
+		char texFilePath[20]; // ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ•ã‚¡ã‚¤ãƒ«å(ãƒ—ãƒ©ã‚¹ã‚¢ãƒ«ãƒ•ã‚¡â€¦å¾Œè¿°)
+	}; // 70ãƒã‚¤ãƒˆã®ã¯ãšâ€¦ã§ã‚‚ãƒ‘ãƒ‡ã‚£ãƒ³ã‚°ãŒç™ºç”Ÿã™ã‚‹ãŸã‚72ãƒã‚¤ãƒˆ
+#pragma pack() // 1ãƒã‚¤ãƒˆãƒ‘ãƒƒã‚­ãƒ³ã‚°è§£é™¤
 
 	unsigned int materialNum;
 	fread(&materialNum, sizeof(materialNum), 1, fp);
@@ -326,7 +332,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 
 	std::vector<PMDMaterial> pmdMaterials(materialNum);
 	fread(pmdMaterials.data(), pmdMaterials.size() * sizeof(PMDMaterial), 1, fp);
-	// ƒRƒs[
+	// ãƒ¡ãƒ³ãƒã®å‹•çš„é…åˆ—ã«èª­ã¿è¾¼ã‚“ã ãƒãƒ†ãƒªã‚¢ãƒ«æƒ…å ±ã‚’æ›¸ãè¾¼ã¿
 	for (int i = 0; i < pmdMaterials.size(); ++i) {
 		m_materials[i].indicesNum = pmdMaterials[i].indicesNum;
 		m_materials[i].material.diffuse = pmdMaterials[i].diffuse;
@@ -338,7 +344,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	}
 
 	for (int i = 0; i < pmdMaterials.size(); ++i) {
-		// ƒgƒD[ƒ“ƒŠƒ\[ƒX‚Ì“Ç‚İ‚İ
+		// ãƒˆã‚¥ãƒ¼ãƒ³ãƒªã‚½ãƒ¼ã‚¹ã®èª­ã¿è¾¼ã¿
 		char toonFilePath[32];
 		sprintf(toonFilePath, "toon/toon%02d.bmp", pmdMaterials[i].toonIdx + 1);
 		m_toonResources[i] = m_dx12Ref.getTextureByPath(toonFilePath);
@@ -351,7 +357,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 		std::string texFileName = pmdMaterials[i].texFilePath;
 		std::string sphFileName = "";
 		std::string spaFileName = "";
-		if (count(texFileName.begin(), texFileName.end(), '*') > 0) {//ƒXƒvƒŠƒbƒ^‚ª‚ ‚é
+		if (std::count(texFileName.begin(), texFileName.end(), '*') > 0) {//ã‚¹ãƒ—ãƒªãƒƒã‚¿ãŒã‚ã‚‹
 			auto [first, second] = PathOperator::splitFileName(texFileName);
 			if (PathOperator::getExtension(first) == "sph") {
 				texFileName = second;
@@ -384,7 +390,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 				texFileName = pmdMaterials[i].texFilePath;
 			}
 		}
-		// ƒ‚ƒfƒ‹‚ÆƒeƒNƒXƒ`ƒƒƒpƒX‚©‚çƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚©‚ç‚ÌƒeƒNƒXƒ`ƒƒƒpƒX‚ğ“¾‚é
+		// ãƒ¢ãƒ‡ãƒ«ã¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ‘ã‚¹ã‹ã‚‰ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‹ã‚‰ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ‘ã‚¹ã‚’å¾—ã‚‹
 		if (texFileName != "") {
 			auto texFilePath = PathOperator::getTexturePathFromModelAndTexPath(strModelPath, texFileName.c_str());
 			m_textureResources[i] = m_dx12Ref.getTextureByPath(texFilePath.c_str());
@@ -399,6 +405,4 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 		}
 	}
 	fclose(fp);
-
 }
-

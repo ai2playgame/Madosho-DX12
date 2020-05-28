@@ -12,62 +12,62 @@
 #include<wrl.h>
 #include<memory>
 
-// ‘O•ûéŒ¾
+// å‰æ–¹å®£è¨€
 class DX12Wrapper;
 class PMDRenderer;
 class PMDActor;
 
-// ƒVƒ“ƒOƒ‹ƒgƒ“ƒNƒ‰ƒX
+// ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã‚¯ãƒ©ã‚¹
 class Application
 {
 	// ---------------------------------------------------------------- //
-	//	ƒVƒ“ƒOƒ‹ƒgƒ“—pİ’è
+	//	ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ç”¨è¨­å®š
 	// ---------------------------------------------------------------- //
 private:
-	// ƒRƒ“ƒXƒgƒ‰ƒNƒ^‚ğprivate‚ÅéŒ¾
-	// ƒRƒs[‚Æ‘ã“ü‚ğ‹Ö~‚É
+	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã‚’privateã§å®£è¨€
+	// ã‚³ãƒ”ãƒ¼ã¨ä»£å…¥ã‚’ç¦æ­¢ã«
 	Application() = default;
 	Application(const Application&) = delete;
 	void operator=(const Application&) = delete;
 
 public:
 	~Application() = default;
-	// Application‚ÌƒVƒ“ƒOƒ‹ƒgƒ“ƒCƒ“ƒXƒ^ƒ“ƒX‚ğ“¾‚é
+	// Applicationã®ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’å¾—ã‚‹
 	static Application& instance();
 
 	// ---------------------------------------------------------------- //
-	//	publicƒƒ\ƒbƒh
+	//	publicãƒ¡ã‚½ãƒƒãƒ‰
 	// ---------------------------------------------------------------- //
 
-	// ‰Šú‰»
+	// åˆæœŸåŒ–
 	bool init();
 
-	// ƒ‹[ƒv‹N“®
+	// ãƒ«ãƒ¼ãƒ—èµ·å‹•
 	void run();
 
-	// Œãˆ—
+	// å¾Œå‡¦ç†
 	void terminate();
 
-	// ƒEƒBƒ“ƒhƒEƒTƒCƒYæ“¾
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºå–å¾—
 	SIZE getWindowSize() const;
 
-	//ƒQ[ƒ€—pƒEƒBƒ“ƒhƒE‚Ì¶¬
+	//ã‚²ãƒ¼ãƒ ç”¨ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ç”Ÿæˆ
 	void createGameWindow(HWND &hwnd, WNDCLASSEX &windowClass);
 
 	// ---------------------------------------------------------------- //
-	//	publicƒtƒB[ƒ‹ƒh
+	//	publicãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
 	// ---------------------------------------------------------------- //
 
-	//ƒEƒBƒ“ƒhƒEü‚è
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å‘¨ã‚Š
 	static const unsigned int WIN_WIDTH;
 	static const unsigned int WIN_HEIGHT;
 	WNDCLASSEX m_windowClass;
 	HWND m_hwnd;
 
-	// DX12•`‰æƒ‰ƒbƒp
+	// DX12æç”»ãƒ©ãƒƒãƒ‘
 	std::shared_ptr<DX12Wrapper> m_dx12;
 	
-	// PMDƒŒƒ“ƒ_ƒ‰•ƒAƒNƒ^[
+	// PMDãƒ¬ãƒ³ãƒ€ãƒ©ï¼†ã‚¢ã‚¯ã‚¿ãƒ¼
 	std::shared_ptr<PMDRenderer> m_pmdRenderer;
 	std::shared_ptr<PMDActor> m_pmdActor;
 };

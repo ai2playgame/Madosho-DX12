@@ -25,97 +25,97 @@ public:
 	void beginDraw();
 	void endDraw();
 
-	// ƒeƒNƒXƒ`ƒƒƒpƒX‚©‚ç•K—v‚ÈƒeƒNƒXƒ`ƒƒƒoƒbƒtƒ@‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
-	// ƒeƒNƒXƒ`ƒƒƒtƒ@ƒCƒ‹ƒpƒX
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ‘ã‚¹ã‹ã‚‰å¿…è¦ãªãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒƒãƒ•ã‚¡ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
 	ComPtr<ID3D12Resource> getTextureByPath(const char* texpath);
 
-	ComPtr<ID3D12Device> device();// ƒfƒoƒCƒX
-	ComPtr<ID3D12GraphicsCommandList> commandList();// ƒRƒ}ƒ“ƒhƒŠƒXƒg
-	ComPtr<IDXGISwapChain4> swapchain();// ƒXƒƒbƒvƒ`ƒFƒCƒ“
+	ComPtr<ID3D12Device> device();// ãƒ‡ãƒã‚¤ã‚¹
+	ComPtr<ID3D12GraphicsCommandList> commandList();// ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆ
+	ComPtr<IDXGISwapChain4> swapchain();// ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³
 
 
 private:
 
 	// ---------------------------------------------------------------- //
-	//	privateƒƒ“ƒo•Ï”
+	//	privateãƒ¡ãƒ³ãƒå¤‰æ•°
 	// ---------------------------------------------------------------- //
 
-	// g—p‚·‚éGPU‚ÌƒfƒoƒCƒX–¼
+	// ä½¿ç”¨ã™ã‚‹GPUã®ãƒ‡ãƒã‚¤ã‚¹å
 	const std::wstring DEV_NAME = L"NVIDIA";
 
-	// ƒEƒBƒ“ƒhƒEƒTƒCƒY
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚º
 	SIZE m_winSize;
 
-	// DXGI‚Ü‚í‚è
-	ComPtr<IDXGIFactory4> m_dxgiFactory = nullptr;// DXGIƒCƒ“ƒ^[ƒtƒFƒCƒX
-	ComPtr<IDXGISwapChain4> m_swapchain = nullptr;// ƒXƒƒbƒvƒ`ƒFƒCƒ“
+	// DXGIã¾ã‚ã‚Š
+	ComPtr<IDXGIFactory4> m_dxgiFactory = nullptr;// DXGIã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹
+	ComPtr<IDXGISwapChain4> m_swapchain = nullptr;// ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³
 
-	// DirectX12‚Ü‚í‚è
-	ComPtr<ID3D12Device> m_dev = nullptr;// ƒfƒoƒCƒX
-	ComPtr<ID3D12CommandAllocator> m_cmdAllocator = nullptr;// ƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^
-	ComPtr<ID3D12GraphicsCommandList> m_cmdList = nullptr;// ƒRƒ}ƒ“ƒhƒŠƒXƒg
-	ComPtr<ID3D12CommandQueue> m_cmdQueue = nullptr;// ƒRƒ}ƒ“ƒhƒLƒ…[
+	// DirectX12ã¾ã‚ã‚Š
+	ComPtr<ID3D12Device> m_dev = nullptr;// ãƒ‡ãƒã‚¤ã‚¹
+	ComPtr<ID3D12CommandAllocator> m_cmdAllocator = nullptr;// ã‚³ãƒãƒ³ãƒ‰ã‚¢ãƒ­ã‚±ãƒ¼ã‚¿
+	ComPtr<ID3D12GraphicsCommandList> m_cmdList = nullptr;// ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆ
+	ComPtr<ID3D12CommandQueue> m_cmdQueue = nullptr;// ã‚³ãƒãƒ³ãƒ‰ã‚­ãƒ¥ãƒ¼
 
-	// •\¦‚ÉŠÖ‚í‚éƒoƒbƒtƒ@ü‚è
-	ComPtr<ID3D12Resource> m_depthBuffer = nullptr;// [“xƒoƒbƒtƒ@
-	std::vector<ID3D12Resource*> m_backBuffers;// ƒoƒbƒNƒoƒbƒtƒ@(2‚ÂˆÈãcƒXƒƒbƒvƒ`ƒFƒCƒ“‚ªŠm•Û)
-	ComPtr<ID3D12DescriptorHeap> m_rtvHeaps = nullptr;// ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg—pƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
-	ComPtr<ID3D12DescriptorHeap> m_dsvHeap = nullptr;// [“xƒoƒbƒtƒ@ƒrƒ…[—pƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
+	// è¡¨ç¤ºã«é–¢ã‚ã‚‹ãƒãƒƒãƒ•ã‚¡å‘¨ã‚Š
+	ComPtr<ID3D12Resource> m_depthBuffer = nullptr;// æ·±åº¦ãƒãƒƒãƒ•ã‚¡
+	std::vector<ID3D12Resource*> m_backBuffers;// ãƒãƒƒã‚¯ãƒãƒƒãƒ•ã‚¡(2ã¤ä»¥ä¸Šâ€¦ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³ãŒç¢ºä¿)
+	ComPtr<ID3D12DescriptorHeap> m_rtvHeaps = nullptr;// ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆç”¨ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
+	ComPtr<ID3D12DescriptorHeap> m_dsvHeap = nullptr;// æ·±åº¦ãƒãƒƒãƒ•ã‚¡ãƒ“ãƒ¥ãƒ¼ç”¨ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
 
-	std::unique_ptr<D3D12_VIEWPORT> m_viewport; // ƒrƒ…[ƒ|[ƒg
-	std::unique_ptr<D3D12_RECT> m_scissorrect; // ƒVƒU[‹éŒ`
+	std::unique_ptr<D3D12_VIEWPORT> m_viewport; // ãƒ“ãƒ¥ãƒ¼ãƒãƒ¼ãƒˆ
+	std::unique_ptr<D3D12_RECT> m_scissorrect; // ã‚·ã‚¶ãƒ¼çŸ©å½¢
 
-	// ƒV[ƒ“‚ğ\¬‚·‚éƒoƒbƒtƒ@“™
+	// ã‚·ãƒ¼ãƒ³ã‚’æ§‹æˆã™ã‚‹ãƒãƒƒãƒ•ã‚¡ç­‰
 	ComPtr<ID3D12Resource> m_sceneConstBuff = nullptr;
 
 	struct SceneData {
-		DirectX::XMMATRIX view;// ƒrƒ…[s—ñ
-		DirectX::XMMATRIX proj;// ƒvƒƒWƒFƒNƒVƒ‡ƒ“s—ñ
-		DirectX::XMFLOAT3 eye;// ‹“_À•W
+		DirectX::XMMATRIX view;// ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—
+		DirectX::XMMATRIX proj;// ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³è¡Œåˆ—
+		DirectX::XMFLOAT3 eye;// è¦–ç‚¹åº§æ¨™
 	};
 
 	SceneData* m_mappedSceneData;
 	ComPtr<ID3D12DescriptorHeap> m_sceneDescHeap = nullptr;
 
-	// ƒtƒFƒ“ƒX
+	// ãƒ•ã‚§ãƒ³ã‚¹
 	ComPtr<ID3D12Fence> m_fence = nullptr;
 	UINT64 m_fenceVal = 0;
 
-	// ƒ[ƒh—pƒe[ƒuƒ‹
+	// ãƒ­ãƒ¼ãƒ‰ç”¨ãƒ†ãƒ¼ãƒ–ãƒ«
 	using LoadLambda_t = std::function<HRESULT(const std::wstring&,
 		DirectX::TexMetadata*,
 		DirectX::ScratchImage&)>;
 	std::map < std::string, LoadLambda_t> m_loadLambdaTable;
 
-	// ƒeƒNƒXƒ`ƒƒƒe[ƒuƒ‹
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ†ãƒ¼ãƒ–ãƒ«
 	std::unordered_map<std::string, ComPtr<ID3D12Resource>> m_textureTable;
 
 	// ---------------------------------------------------------------- //
-	//	privateƒƒ\ƒbƒhéŒ¾				                            
+	//	privateãƒ¡ã‚½ãƒƒãƒ‰å®£è¨€				                            
 	// ---------------------------------------------------------------- //
 
-	// ÅI“I‚ÈƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚Ì¶¬
+	// æœ€çµ‚çš„ãªãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®ç”Ÿæˆ
 	HRESULT	createFinalRenderTargets();
 
-	// ƒfƒvƒXƒXƒeƒ“ƒVƒ‹ƒrƒ…[‚Ì¶¬
+	// ãƒ‡ãƒ—ã‚¹ã‚¹ãƒ†ãƒ³ã‚·ãƒ«ãƒ“ãƒ¥ãƒ¼ã®ç”Ÿæˆ
 	HRESULT createDepthStencilView();
 
-	// ƒXƒƒbƒvƒ`ƒFƒCƒ“‚Ì¶¬
+	// ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³ã®ç”Ÿæˆ
 	HRESULT createSwapChain(const HWND& hwnd);
 
-	// DXGI‚Ü‚í‚è‰Šú‰»
+	// DXGIã¾ã‚ã‚ŠåˆæœŸåŒ–
 	HRESULT initDXGIDevice();
 
-	// ƒRƒ}ƒ“ƒh‚Ü‚í‚è‰Šú‰»
+	// ã‚³ãƒãƒ³ãƒ‰ã¾ã‚ã‚ŠåˆæœŸåŒ–
 	HRESULT initCommand();
 
-	// ƒrƒ…[ƒvƒƒWƒFƒNƒVƒ‡ƒ“—pƒrƒ…[‚Ì¶¬
+	// ãƒ“ãƒ¥ãƒ¼ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚·ãƒ§ãƒ³ç”¨ãƒ“ãƒ¥ãƒ¼ã®ç”Ÿæˆ
 	HRESULT createSceneView();
 
-	// ƒeƒNƒXƒ`ƒƒƒ[ƒ_ƒe[ƒuƒ‹‚Ìì¬
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ­ãƒ¼ãƒ€ãƒ†ãƒ¼ãƒ–ãƒ«ã®ä½œæˆ
 	void createTextureLoaderTable();
 
-	// ƒeƒNƒXƒ`ƒƒ–¼‚©‚çƒeƒNƒXƒ`ƒƒƒoƒbƒtƒ@ì¬A’†g‚ğƒRƒs[
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£åã‹ã‚‰ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒãƒƒãƒ•ã‚¡ä½œæˆã€ä¸­èº«ã‚’ã‚³ãƒ”ãƒ¼
 	ID3D12Resource* createTextureFromFile(const char* texpath);
 
 };

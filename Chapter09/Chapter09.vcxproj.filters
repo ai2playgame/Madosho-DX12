@@ -52,6 +52,7 @@
     <None Include="BasicType.hlsli">
       <Filter>リソース ファイル</Filter>
     </None>
+    <None Include=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl">

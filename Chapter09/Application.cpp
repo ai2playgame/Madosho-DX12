@@ -4,28 +4,28 @@
 #include "PMDActor.hpp"
 
 // ---------------------------------------------------------------- //
-//	static ’è”ƒƒ“ƒo‚Ì’è‹`
+//	static å®šæ•°ãƒ¡ãƒ³ãƒã®å®šç¾©
 // ---------------------------------------------------------------- //
 const unsigned int Application::WIN_WIDTH = 1280;
 const unsigned int Application::WIN_HEIGHT = 720;
 
 // ---------------------------------------------------------------- //
-//	–³–¼–¼‘O‹óŠÔ
+//	ç„¡ååå‰ç©ºé–“
 // ---------------------------------------------------------------- //
 
 namespace {
-// ƒEƒBƒ“ƒhƒEƒvƒƒV[ƒWƒƒiWinAPIj
+// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£ï¼ˆWinAPIï¼‰
 LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	if (msg == WM_DESTROY) {
-		PostQuitMessage(0); // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“I—¹‚ğOS‚É“`‚¦‚é
+		PostQuitMessage(0); // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†ã‚’OSã«ä¼ãˆã‚‹
 		return 0;
 	}
-	return DefWindowProc(hwnd, msg, wparam, lparam);	// Šù’è‚Ìˆ—
+	return DefWindowProc(hwnd, msg, wparam, lparam);	// æ—¢å®šã®å‡¦ç†
 }
 }
 
 // ---------------------------------------------------------------- //
-//	publicƒƒ\ƒbƒh
+//	publicãƒ¡ã‚½ãƒƒãƒ‰
 // ---------------------------------------------------------------- //
 
 Application& Application::instance() {
@@ -37,10 +37,10 @@ bool Application::init() {
 	auto result = CoInitializeEx(0, COINIT_MULTITHREADED);
 	createGameWindow(m_hwnd, m_windowClass);
 
-	// DirectX12ƒ‰ƒbƒpƒIƒuƒWƒFƒNƒg¶¬
+	// DirectX12ãƒ©ãƒƒãƒ‘ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç”Ÿæˆ
 	m_dx12.reset(new DX12Wrapper(m_hwnd));
 	m_pmdRenderer.reset(new PMDRenderer(*m_dx12));
-	m_pmdActor.reset(new PMDActor("Model/‰‰¹ƒ~ƒN.pmd", *m_pmdRenderer));
+	m_pmdActor.reset(new PMDActor("Model/åˆéŸ³ãƒŸã‚¯.pmd", *m_pmdRenderer));
 
 	return true;
 }
@@ -89,17 +89,17 @@ SIZE Application::getWindowSize() const {
 
 void Application::createGameWindow(HWND& hwnd, WNDCLASSEX& windowClass) {
 	HINSTANCE hInst = GetModuleHandle(nullptr);
-	// ƒEƒBƒ“ƒhƒEƒNƒ‰ƒX¶¬•“o˜^
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¯ãƒ©ã‚¹ç”Ÿæˆï¼†ç™»éŒ²
 	windowClass.cbSize = sizeof(WNDCLASSEX);
-	windowClass.lpfnWndProc = (WNDPROC)WindowProcedure; // ƒR[ƒ‹ƒoƒbƒNw’è
+	windowClass.lpfnWndProc = (WNDPROC)WindowProcedure; // ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯æŒ‡å®š
 	windowClass.lpszClassName = _T("DirectX12 Test");
 	windowClass.hInstance = GetModuleHandle(0);
-	RegisterClassEx(&windowClass); // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Éİ’è
+	RegisterClassEx(&windowClass); // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã«è¨­å®š
 
 	RECT wrc = { 0, 0, WIN_WIDTH, WIN_HEIGHT };
-	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false); // ƒEƒBƒ“ƒhƒEƒTƒCƒY•â³
+	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false); // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºè£œæ­£
 	
-	// ÀÛ‚ÉƒEƒBƒ“ƒhƒEƒIƒuƒWƒFƒNƒg‚ğ¶¬‚·‚é
+	// å®Ÿéš›ã«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã™ã‚‹
 	hwnd = CreateWindow(windowClass.lpszClassName,
 		_T("DX12 Refactor"),
 		WS_OVERLAPPEDWINDOW,
@@ -114,7 +114,5 @@ void Application::createGameWindow(HWND& hwnd, WNDCLASSEX& windowClass) {
 }
 
 // ---------------------------------------------------------------- //
-//	privateƒƒ\ƒbƒh
+//	privateãƒ¡ã‚½ãƒƒãƒ‰
 // ---------------------------------------------------------------- //
-
-

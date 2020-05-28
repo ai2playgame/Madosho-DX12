@@ -7,29 +7,29 @@
 #include <wrl.h>
 
 // ---------------------------------------------------------------- //
-//	‘O•ûéŒ¾
+//	å‰æ–¹å®£è¨€
 // ---------------------------------------------------------------- //
 class DX12Wrapper;
 class PMDRenderer;
 
 class PMDActor {
     // ---------------------------------------------------------------- //
-    //	friendƒNƒ‰ƒXİ’è
+    //	friendã‚¯ãƒ©ã‚¹è¨­å®š
     // ---------------------------------------------------------------- //
     friend PMDRenderer;
 
     // ---------------------------------------------------------------- //
-    // usingƒGƒCƒŠƒAƒX
+    // usingã‚¨ã‚¤ãƒªã‚¢ã‚¹
     // ---------------------------------------------------------------- //
     template <typename T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 public:
     // ---------------------------------------------------------------- //
-    //	public ƒƒ\ƒbƒh
+    //	public ãƒ¡ã‚½ãƒƒãƒ‰
     // ---------------------------------------------------------------- //
     PMDActor(const char *filepath, PMDRenderer &renderer, float angle = 0.f);
     ~PMDActor() = default;
-    // ƒNƒ[ƒ“‚·‚éÛ‚Í’¸“_‚¨‚æ‚Ñƒ}ƒeƒŠƒAƒ‹‚Í‹¤’Ê‚Ìƒoƒbƒtƒ@‚ğŒ©‚é‚æ‚¤‚É‚·‚é
+    // ã‚¯ãƒ­ãƒ¼ãƒ³ã™ã‚‹éš›ã¯é ‚ç‚¹ãŠã‚ˆã³ãƒãƒ†ãƒªã‚¢ãƒ«ã¯å…±é€šã®ãƒãƒƒãƒ•ã‚¡ã‚’è¦‹ã‚‹ã‚ˆã†ã«ã™ã‚‹
     PMDActor *clone();
 
     void update();
@@ -38,64 +38,64 @@ public:
 
 private:
     // ---------------------------------------------------------------- //
-    //	“à•”ƒNƒ‰ƒX
+    //	å†…éƒ¨ã‚¯ãƒ©ã‚¹
     // ---------------------------------------------------------------- //
 
-    // ƒVƒF[ƒ_‘¤‚É“Š‚°‚ç‚ê‚éƒ}ƒeƒŠƒAƒ‹ƒf[ƒ^
+    // ã‚·ã‚§ãƒ¼ãƒ€å´ã«æŠ•ã’ã‚‰ã‚Œã‚‹ãƒãƒ†ãƒªã‚¢ãƒ«ãƒ‡ãƒ¼ã‚¿
     struct MaterialForHlsl {
-        DirectX::XMFLOAT3 diffuse;  // ƒfƒBƒtƒ…[ƒYF
-        float alpha;                //  ƒfƒBƒtƒ…[ƒY‚ÌƒAƒ‹ƒtƒ@
-        DirectX::XMFLOAT3 specular; // ƒXƒyƒLƒ…ƒ‰F
-        float specularity;          // ƒXƒyƒLƒ…ƒ‰‚Ì‹­‚³(æZ’l)
-        DirectX::XMFLOAT3 ambient;  // ƒAƒ“ƒrƒGƒ“ƒgF
+        DirectX::XMFLOAT3 diffuse;  // ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºè‰²
+        float alpha;                //  ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºã®ã‚¢ãƒ«ãƒ•ã‚¡
+        DirectX::XMFLOAT3 specular; // ã‚¹ãƒšã‚­ãƒ¥ãƒ©è‰²
+        float specularity;          // ã‚¹ãƒšã‚­ãƒ¥ãƒ©ã®å¼·ã•(ä¹—ç®—å€¤)
+        DirectX::XMFLOAT3 ambient;  // ã‚¢ãƒ³ãƒ“ã‚¨ãƒ³ãƒˆè‰²
     };
 
-    // ƒVƒF[ƒ_‚É‚Í“Š‚°‚ç‚ê‚È‚¢ƒ}ƒeƒŠƒAƒ‹ƒf[ƒ^
+    // ã‚·ã‚§ãƒ¼ãƒ€ã«ã¯æŠ•ã’ã‚‰ã‚Œãªã„ãƒãƒ†ãƒªã‚¢ãƒ«ãƒ‡ãƒ¼ã‚¿
     struct AdditionalMaterial {
-        std::string texPath; // ƒeƒNƒXƒ`ƒƒƒtƒ@ƒCƒ‹ƒpƒX
-        int toonIdx;         // ƒgƒD[ƒ“”Ô†
-        bool edgeFlg;        // ƒ}ƒeƒŠƒAƒ‹–ˆ‚Ì—ÖŠsüƒtƒ‰ƒO
+        std::string texPath; // ãƒ†ã‚¯ã‚¹ãƒãƒ£ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
+        int toonIdx;         // ãƒˆã‚¥ãƒ¼ãƒ³ç•ªå·
+        bool edgeFlg;        // ãƒãƒ†ãƒªã‚¢ãƒ«æ¯ã®è¼ªéƒ­ç·šãƒ•ãƒ©ã‚°
     };
 
-    // ƒ}ƒeƒŠƒAƒ‹
+    // ãƒãƒ†ãƒªã‚¢ãƒ«
     struct Material {
-        unsigned int indicesNum; // ƒCƒ“ƒfƒbƒNƒX”
+        unsigned int indicesNum; // ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹æ•°
         MaterialForHlsl material;
         AdditionalMaterial additional;
     };
 
     struct Transform {
-        // “à•”‚É‚Á‚Ä‚éXMMATRIXƒƒ“ƒo‚ª16ƒoƒCƒgƒAƒ‰ƒCƒƒ“ƒg‚Å‚ ‚é‚½‚ß
-        // Transform‚ğnew‚·‚éÛ‚É‚Í16ƒoƒCƒg‹«ŠE‚ÉŠm•Û‚·‚é
+        // å†…éƒ¨ã«æŒã£ã¦ã‚‹XMMATRIXãƒ¡ãƒ³ãƒãŒ16ãƒã‚¤ãƒˆã‚¢ãƒ©ã‚¤ãƒ¡ãƒ³ãƒˆã§ã‚ã‚‹ãŸã‚
+        // Transformã‚’newã™ã‚‹éš›ã«ã¯16ãƒã‚¤ãƒˆå¢ƒç•Œã«ç¢ºä¿ã™ã‚‹
         void *operator new(size_t size);
         DirectX::XMMATRIX world;
     };
 
     // ---------------------------------------------------------------- //
-    //	private ƒƒ“ƒo
+    //	private ãƒ¡ãƒ³ãƒ
     // ---------------------------------------------------------------- //
 
-    // ˆË‘¶ƒ‚ƒWƒ…[ƒ‹
-    // TODO: QÆŒ^‚ğƒƒ“ƒo‚É‚Â‚Ì‚ÍŠëŒ¯‚Å‚ÍH
+    // ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+    // TODO: å‚ç…§å‹ã‚’ãƒ¡ãƒ³ãƒã«æŒã¤ã®ã¯å±é™ºã§ã¯ï¼Ÿ
     PMDRenderer &m_rendererRef;
     DX12Wrapper &m_dx12Ref;
 
-    // ’¸“_ŠÖ˜A
+    // é ‚ç‚¹é–¢é€£
     ComPtr<ID3D12Resource> m_vb = nullptr;
     ComPtr<ID3D12Resource> m_ib = nullptr;
     D3D12_VERTEX_BUFFER_VIEW m_vbView{};
     D3D12_INDEX_BUFFER_VIEW m_ibView{};
 
-    // À•W•ÏŠ·s—ñ
+    // åº§æ¨™å¤‰æ›è¡Œåˆ—
     ComPtr<ID3D12Resource> m_transformMat = nullptr;
-    // À•W•ÏŠ·s—ñ—pƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv
+    // åº§æ¨™å¤‰æ›è¡Œåˆ—ç”¨ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
     ComPtr<ID3D12DescriptorHeap> m_transformHeap = nullptr;
 
     Transform m_transform;
     Transform *m_mappedTransform = nullptr;
     ComPtr<ID3D12Resource> m_transformBuff = nullptr;
 
-    // ƒ}ƒeƒŠƒAƒ‹ŠÖ˜A
+    // ãƒãƒ†ãƒªã‚¢ãƒ«é–¢é€£
     std::vector<Material> m_materials;
     ComPtr<ID3D12Resource> m_materialBuff = nullptr;
     std::vector<ComPtr<ID3D12Resource>> m_textureResources;
@@ -103,25 +103,25 @@ private:
     std::vector<ComPtr<ID3D12Resource>> m_spaResources;
     std::vector<ComPtr<ID3D12Resource>> m_toonResources;
 
-    // ƒ}ƒeƒŠƒAƒ‹—p‚Ìƒq[ƒvi5ŒÂ•ªHj
+    // ãƒãƒ†ãƒªã‚¢ãƒ«ç”¨ã®ãƒ’ãƒ¼ãƒ—ï¼ˆ5å€‹åˆ†ï¼Ÿï¼‰
     ComPtr<ID3D12DescriptorHeap> m_materialHeap = nullptr;
 
-    // “®ìŠm”F—p‚ÌY²‰ñ“]Šp
+    // å‹•ä½œç¢ºèªç”¨ã®Yè»¸å›è»¢è§’
     float m_angle;
 
     // ---------------------------------------------------------------- //
-    //	private ƒƒ\ƒbƒh
+    //	private ãƒ¡ã‚½ãƒƒãƒ‰
     // ---------------------------------------------------------------- //
 
-    // À•W•ÏŠ·—pƒrƒ…[‚Ì¶¬
+    // åº§æ¨™å¤‰æ›ç”¨ãƒ“ãƒ¥ãƒ¼ã®ç”Ÿæˆ
     HRESULT createTransformView();
 
-    // “Ç‚İ‚ñ‚¾ƒ}ƒeƒŠƒAƒ‹‚ğ‚à‚Æ‚Éƒ}ƒeƒŠƒAƒ‹ƒoƒbƒtƒ@‚ğì¬
+    // èª­ã¿è¾¼ã‚“ã ãƒãƒ†ãƒªã‚¢ãƒ«ã‚’ã‚‚ã¨ã«ãƒãƒ†ãƒªã‚¢ãƒ«ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆ
     HRESULT createMaterialData();
 
-    // ƒ}ƒeƒŠƒAƒ‹•ƒeƒNƒXƒ`ƒƒ‚Ìƒrƒ…[‚ğì¬
+    // ãƒãƒ†ãƒªã‚¢ãƒ«ï¼†ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒ“ãƒ¥ãƒ¼ã‚’ä½œæˆ
     HRESULT createMaterialAndTextureView();
 
-    // PMDƒtƒ@ƒCƒ‹‚Ìƒ[ƒh
+    // PMDãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ­ãƒ¼ãƒ‰
     HRESULT loadPMDFile(const char *path);
 };

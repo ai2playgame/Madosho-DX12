@@ -1,12 +1,11 @@
 #pragma once
-
 #include <d3d12.h>
 #include <vector>
 #include <wrl.h>
 #include <memory>
 
 // ---------------------------------------------------------------- //
-//  ‘O•ûéŒ¾
+//  å‰æ–¹å®£è¨€
 // ---------------------------------------------------------------- //
 class DX12Wrapper;
 class PMDActor;
@@ -15,18 +14,18 @@ class PMDRenderer
 {
 public:
 // ---------------------------------------------------------------- //
-//  friendƒNƒ‰ƒXİ’è  
+//  friendã‚¯ãƒ©ã‚¹è¨­å®š  
 // ---------------------------------------------------------------- //
     friend PMDActor;
 
 // ---------------------------------------------------------------- //
-//  publicƒƒ“ƒo 
+//  publicãƒ¡ãƒ³ãƒ 
 // ---------------------------------------------------------------- //
     DX12Wrapper& m_dx12Ref;
 
 
 // ---------------------------------------------------------------- //
-//  publicƒƒ\ƒbƒh
+//  publicãƒ¡ã‚½ãƒƒãƒ‰
 // ---------------------------------------------------------------- //
     PMDRenderer(DX12Wrapper& dx12);
 
@@ -43,44 +42,43 @@ public:
 
 private:
 // ---------------------------------------------------------------- //
-//  usingƒGƒCƒŠƒAƒX
+//  usingã‚¨ã‚¤ãƒªã‚¢ã‚¹
 // ---------------------------------------------------------------- //
     template <typename T>
     using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 // ---------------------------------------------------------------- //
-//  privateƒƒ“ƒo
+//  privateãƒ¡ãƒ³ãƒ
 // ---------------------------------------------------------------- //
 
-    // PMD—p‚ÌƒpƒCƒvƒ‰ƒCƒ“
+    // PMDç”¨ã®ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³
     ComPtr<ID3D12PipelineState> m_pipeline = nullptr;
-    // PMD—p‚Ìƒ‹[ƒgƒVƒOƒlƒ`ƒƒ
+    // PMDç”¨ã®ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£
     ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 
-    // PMD—p‚Ì‹¤’ÊƒeƒNƒXƒ`ƒƒ (”’E•EƒOƒŒ[ƒXƒP[ƒ‹ƒOƒ‰ƒf[ƒVƒ‡ƒ“j
+    // PMDç”¨ã®å…±é€šãƒ†ã‚¯ã‚¹ãƒãƒ£ (ç™½ãƒ»é»’ãƒ»ã‚°ãƒ¬ãƒ¼ã‚¹ã‚±ãƒ¼ãƒ«ã‚°ãƒ©ãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ï¼‰
     ComPtr<ID3D12Resource> m_whiteTex = nullptr;
     ComPtr<ID3D12Resource> m_blackTex = nullptr;
     ComPtr<ID3D12Resource> m_gradTex = nullptr;
 
 // ---------------------------------------------------------------- //
-//	privateƒƒ\ƒbƒh
+//	privateãƒ¡ã‚½ãƒƒãƒ‰
 // ---------------------------------------------------------------- //
 
     ID3D12Resource* createDefaultTexture(size_t width, size_t height);
 
-    // ”’’PFƒeƒNƒXƒ`ƒƒ‚Ìì¬
+    // ç™½å˜è‰²ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ä½œæˆ
     ID3D12Resource* createWhiteTexture();
-    // •’PFƒeƒNƒXƒ`ƒƒ‚Ìì¬
+    // é»’å˜è‰²ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ä½œæˆ
     ID3D12Resource* createBlackTexture();
-    // ƒOƒŒ[ƒXƒP[ƒ‹ƒOƒ‰ƒf[ƒVƒ‡ƒ“‚Ìì¬
+    // ã‚°ãƒ¬ãƒ¼ã‚¹ã‚±ãƒ¼ãƒ«ã‚°ãƒ©ãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ã®ä½œæˆ
     ID3D12Resource* createGrayGradationTexture();
 
-    // ƒpƒCƒvƒ‰ƒCƒ“‚Ì‰Šú‰»
+    // ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã®åˆæœŸåŒ–
     HRESULT createGraphicsPipelineForPMD();
-    // ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚Ì‰Šú‰»
+    // ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã®åˆæœŸåŒ–
     HRESULT createRootSignature();
 
     bool checkShaderCompileResult(HRESULT result, ID3DBlob* err = nullptr);
 
 };
-

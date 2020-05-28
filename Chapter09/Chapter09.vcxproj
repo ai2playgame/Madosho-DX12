@@ -155,6 +155,7 @@
     <ClInclude Include="PMDRenderer.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".editorconfig" />
     <None Include="BasicType.hlsli" />
   </ItemGroup>
   <ItemGroup>

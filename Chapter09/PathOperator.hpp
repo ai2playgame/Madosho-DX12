@@ -11,15 +11,15 @@ private:
 
 public:
 	/// <summary>
-	/// ƒ‚ƒfƒ‹‚ÌƒpƒX‚ÆƒeƒNƒXƒ`ƒƒ‚ÌƒpƒX‚ğ—^‚¦‡¬ƒpƒX‚ğ“¾‚é
+	/// ãƒ¢ãƒ‡ãƒ«ã®ãƒ‘ã‚¹ã¨ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒ‘ã‚¹ã‚’ä¸ãˆåˆæˆãƒ‘ã‚¹ã‚’å¾—ã‚‹
 	/// </summary>
-	/// <param name="modelPath">ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚©‚çŒ©‚½PMDƒ‚ƒfƒ‹‚Ì‘Š‘ÎƒpƒX</param>
-	/// <param name="texPath">PMDƒ‚ƒfƒ‹‚©‚çŒ©‚½ƒeƒNƒXƒ`ƒƒ‚Ì‘Š‘ÎƒpƒX</param>
-	/// <returns>ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚©‚çŒ©‚½ƒeƒNƒXƒ`ƒƒ‚Ì‘Š‘ÎƒpƒX</returns>
+	/// <param name="modelPath">ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‹ã‚‰è¦‹ãŸPMDãƒ¢ãƒ‡ãƒ«ã®ç›¸å¯¾ãƒ‘ã‚¹</param>
+	/// <param name="texPath">PMDãƒ¢ãƒ‡ãƒ«ã‹ã‚‰è¦‹ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ç›¸å¯¾ãƒ‘ã‚¹</param>
+	/// <returns>ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‹ã‚‰è¦‹ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ç›¸å¯¾ãƒ‘ã‚¹</returns>
     static std::string getTexturePathFromModelAndTexPath(const std::string& modelPath, const char* texPath) {
-		// ƒtƒ@ƒCƒ‹‚ÌƒtƒHƒ‹ƒ_‹æØ‚è‚Í\‚Æ/‚Ì“ñí—Ş‚ªg—p‚³‚ê‚é‰Â”\«‚ª‚ ‚è
-		// ‚Æ‚à‚©‚­––”ö‚Ì\‚©/‚ğ“¾‚ç‚ê‚ê‚Î‚¢‚¢‚Ì‚ÅA‘o•û‚Ìrfind‚ğ‚Æ‚è”äŠr‚·‚é
-		// intŒ^‚É‘ã“ü‚µ‚Ä‚¢‚é‚Ì‚ÍŒ©‚Â‚©‚ç‚È‚©‚Á‚½ê‡‚Írfind‚ªepos(-1¨0xffffffff)‚ğ•Ô‚·‚½‚ß
+		// ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ•ã‚©ãƒ«ãƒ€åŒºåˆ‡ã‚Šã¯\ã¨/ã®äºŒç¨®é¡ãŒä½¿ç”¨ã•ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚Š
+		// ã¨ã‚‚ã‹ãæœ«å°¾ã®\ã‹/ã‚’å¾—ã‚‰ã‚Œã‚Œã°ã„ã„ã®ã§ã€åŒæ–¹ã®rfindã‚’ã¨ã‚Šæ¯”è¼ƒã™ã‚‹
+		// intå‹ã«ä»£å…¥ã—ã¦ã„ã‚‹ã®ã¯è¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸå ´åˆã¯rfindãŒepos(-1â†’0xffffffff)ã‚’è¿”ã™ãŸã‚
 		int pathIndex1 = modelPath.rfind('/');
 		int pathIndex2 = modelPath.rfind('\\');
 		auto pathIndex = (std::max)(pathIndex1, pathIndex2);
@@ -28,31 +28,31 @@ public:
 	}
 
 	/// <summary>
-	/// ƒtƒ@ƒCƒ‹–¼‚©‚çŠg’£q‚ğæ“¾
+	/// ãƒ•ã‚¡ã‚¤ãƒ«åã‹ã‚‰æ‹¡å¼µå­ã‚’å–å¾—
 	/// </summary>
-	/// <param name="path">‘ÎÛ‚ÌƒpƒX•¶š—ñ</param>
-	/// <returns>Šg’£q</returns>
+	/// <param name="path">å¯¾è±¡ã®ãƒ‘ã‚¹æ–‡å­—åˆ—</param>
+	/// <returns>æ‹¡å¼µå­</returns>
 	static std::string getExtension(const std::string& path) {
 		auto idx = path.rfind('.');
 		return path.substr(idx + 1, path.length() - idx - 1);
 	}
 
 	/// <summary>
-	/// ƒeƒNƒXƒ`ƒƒ‚ÌƒpƒX‚ğƒZƒpƒŒ[ƒ^•¶š‚Å•ª—£
+	/// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒ‘ã‚¹ã‚’ã‚»ãƒ‘ãƒ¬ãƒ¼ã‚¿æ–‡å­—ã§åˆ†é›¢
 	/// </summary>
-	/// <param name="path">‘ÎÛ‚ÌƒpƒX•¶š—ñ</param>
-	/// <param name="separator">‹æØ‚è•¶š</param>
-	/// <returns>•ªŠ„‚µ‚½•¶š—ñƒyƒA</returns>
+	/// <param name="path">å¯¾è±¡ã®ãƒ‘ã‚¹æ–‡å­—åˆ—</param>
+	/// <param name="separator">åŒºåˆ‡ã‚Šæ–‡å­—</param>
+	/// <returns>åˆ†å‰²ã—ãŸæ–‡å­—åˆ—ãƒšã‚¢</returns>
 	static std::tuple<std::string, std::string> splitFileName(std::string& path, const char separator = '*') {
 		auto idx = path.find(separator);
 		return { path.substr(0, idx), path.substr(idx + 1, path.length() - idx - 1) };
 	}
 
 	/// <summary>
-	/// stringiƒ}ƒ‹ƒ`ƒoƒCƒg•¶š—ñj‚©‚çwstringiƒƒCƒh•¶š—ñj‚ğ“¾‚é
+	/// stringï¼ˆãƒãƒ«ãƒãƒã‚¤ãƒˆæ–‡å­—åˆ—ï¼‰ã‹ã‚‰wstringï¼ˆãƒ¯ã‚¤ãƒ‰æ–‡å­—åˆ—ï¼‰ã‚’å¾—ã‚‹
 	/// </summary>
-	/// <param name="str">ƒ}ƒ‹ƒ`ƒoƒCƒg•¶š—ñ</param>
-	/// <returns>•ÏŠ·‚³‚ê‚½ƒƒCƒh•¶š—ñ</returns>
+	/// <param name="str">ãƒãƒ«ãƒãƒã‚¤ãƒˆæ–‡å­—åˆ—</param>
+	/// <returns>å¤‰æ›ã•ã‚ŒãŸãƒ¯ã‚¤ãƒ‰æ–‡å­—åˆ—</returns>
 	static std::wstring toWString(const std::string& str) {
 		auto num1 = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, str.c_str(), -1, nullptr, 0);
 		std::wstring wstr;
