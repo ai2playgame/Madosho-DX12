@@ -159,30 +159,37 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 	materialDescHeapDesc.NumDescriptors = m_materials.size() * 5; // マテリアル数ぶん(定数1つ、テクスチャ3つ)
 	materialDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	materialDescHeapDesc.NodeMask = 0;
-
 	materialDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // デスクリプタヒープ種別
 	auto result = m_dx12Ref.device()->CreateDescriptorHeap(&materialDescHeapDesc, IID_PPV_ARGS(m_materialHeap.ReleaseAndGetAddressOf()));//生成
 	if (FAILED(result)) {
 		assert(SUCCEEDED(result));
 		return result;
 	}
+	
+	// マテリアルの定数データ（ディフューズetc……）
 	auto materialBuffSize = sizeof(MaterialForHlsl);
 	materialBuffSize = (materialBuffSize + 0xff)&~0xff;
 	D3D12_CONSTANT_BUFFER_VIEW_DESC matCBVDesc{};
 	matCBVDesc.BufferLocation = m_materialBuff->GetGPUVirtualAddress();
 	matCBVDesc.SizeInBytes = materialBuffSize;
 	
+	// マテリアルに対応したテクスチャ用のビュー作成
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // TODO:後述
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D; // 2Dテクスチャ
 	srvDesc.Texture2D.MipLevels = 1; // ミップマップは使用しないので1
-	CD3DX12_CPU_DESCRIPTOR_HANDLE matDescHeapH(m_materialHeap->GetCPUDescriptorHandleForHeapStart());
+
+	// マテリアル数分CBV+(SRV+SRV+SRV+SRV)、CBV+(SRV+SRV+SRV+SRV)……とビューをディスクリプタヒープに並べる
+	// incSize: CBV,SRV,UAVのディスクリプタサイズ
 	auto incSize = m_dx12Ref.device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	CD3DX12_CPU_DESCRIPTOR_HANDLE matDescHeapH(m_materialHeap->GetCPUDescriptorHandleForHeapStart());
 	for (int i = 0; i < m_materials.size(); ++i) {
-		// マテリアル固定バッファビュー
+		// マテリアル用CBV作成
 		m_dx12Ref.device()->CreateConstantBufferView(&matCBVDesc, matDescHeapH);
-		matDescHeapH.ptr += incSize;
 		matCBVDesc.BufferLocation += materialBuffSize;
+		matDescHeapH.ptr += incSize;
+
+		// BaseColorテクスチャ用SRV作成
 		if (m_textureResources[i] == nullptr) {
 			srvDesc.Format = m_rendererRef.m_whiteTex->GetDesc().Format;
 			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_whiteTex.Get(), &srvDesc, matDescHeapH);
@@ -191,8 +198,9 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 			srvDesc.Format = m_textureResources[i]->GetDesc().Format;
 			m_dx12Ref.device()->CreateShaderResourceView(m_textureResources[i].Get(), &srvDesc, matDescHeapH);
 		}
-		matDescHeapH.Offset(incSize);
-
+		matDescHeapH.ptr += incSize;
+		
+		// SPHテクスチャ用のSRV作成
 		if (m_sphResources[i] == nullptr) {
 			srvDesc.Format = m_rendererRef.m_whiteTex->GetDesc().Format;
 			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_whiteTex.Get(), &srvDesc, matDescHeapH);
@@ -203,6 +211,7 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 		}
 		matDescHeapH.ptr += incSize;
 
+		// SPAテクスチャ用のSRV作成
 		if (m_spaResources[i] == nullptr) {
 			srvDesc.Format = m_rendererRef.m_blackTex->GetDesc().Format;
 			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_blackTex.Get(), &srvDesc, matDescHeapH);
@@ -213,7 +222,7 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 		}
 		matDescHeapH.ptr += incSize;
 
-
+		// Toonテクスチャ用のSRV作成
 		if (m_toonResources[i] == nullptr) {
 			srvDesc.Format = m_rendererRef.m_gradTex->GetDesc().Format;
 			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_gradTex.Get(), &srvDesc, matDescHeapH);
@@ -346,7 +355,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	for (int i = 0; i < pmdMaterials.size(); ++i) {
 		// トゥーンリソースの読み込み
 		char toonFilePath[32];
-		sprintf(toonFilePath, "toon/toon%02d.bmp", pmdMaterials[i].toonIdx + 1);
+		sprintf(toonFilePath, "toon/toon%02d.bmp", (unsigned char)(pmdMaterials[i].toonIdx + 1));
 		m_toonResources[i] = m_dx12Ref.getTextureByPath(toonFilePath);
 
 		if (strlen(pmdMaterials[i].texFilePath) == 0) {

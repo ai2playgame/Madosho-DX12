@@ -511,7 +511,7 @@ ID3D12Resource* DX12Wrapper::createTextureFromFile(const char* texPath) {
 	auto ext = PathOperator::getExtension(texPathStr);
 	auto result = m_loadLambdaTable[ext](texPathWStr, &texMeta, scrachImg);
 	if (FAILED(result)) {
-		assert(0);
+		// assert(0);
 		return nullptr;
 	}
 

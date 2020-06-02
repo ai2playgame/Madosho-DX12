@@ -184,18 +184,18 @@ HRESULT PMDRenderer::createGraphicsPipelineForPMD() {
 }
 
 HRESULT PMDRenderer::createRootSignature() {
-    // レンジ設定
+    // ディスクリプタレンジ設定
     CD3DX12_DESCRIPTOR_RANGE descTblRanges[4] = {};
     descTblRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0); // 定数[b0] （ビュープロジェクション用）
     descTblRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1); // 定数[b1] （ワールド・ボーン用）
-    descTblRanges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2); // 定数[b2] （マテリアル用）
-    descTblRanges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0); // テクスチャ4つ（基本・sph・spa・トゥーン）
+    descTblRanges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2); // 定数[b2] （マテリアルパラメータ）
+    descTblRanges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0); // テクスチャ4つ（BaseColor・sph・spa・トゥーン）
 
-    // パラメータ
+    // ルートパラメータ
     CD3DX12_ROOT_PARAMETER rootParams[3] = {};
     rootParams[0].InitAsDescriptorTable(1, &descTblRanges[0]); // ビュープロジェクション変換
     rootParams[1].InitAsDescriptorTable(1, &descTblRanges[1]); // ワールド・ボーン変換
-    rootParams[2].InitAsDescriptorTable(2, &descTblRanges[2]); // マテリアル周り
+    rootParams[2].InitAsDescriptorTable(2, &descTblRanges[2]); // マテリアルパラメータ
 
     CD3DX12_STATIC_SAMPLER_DESC samplerDescs[2] = {};
     samplerDescs[0].Init(0);
