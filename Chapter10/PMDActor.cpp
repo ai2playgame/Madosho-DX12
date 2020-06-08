@@ -571,15 +571,8 @@ void PMDActor::recursiveMatrixMultipy(BoneNode* node, const DirectX::XMMATRIX& m
 }
 
 void PMDActor::motionUpdate(){
-
 	auto elapsedTime = timeGetTime() - m_startTime;//経過時間を測る
 	unsigned int frameNo = 30 * (elapsedTime / 1000.0f);
-
-	// アニメーションループ
-	if (frameNo > m_lastFrameNum) {
-		m_startTime = timeGetTime();
-		frameNo = 0;
-	}
 
 	//行列情報クリア(してないと前フレームのポーズが重ね掛けされてモデルが壊れる)
 	std::fill(m_boneMatrices.begin(), m_boneMatrices.end(), XMMatrixIdentity());
@@ -617,5 +610,10 @@ void PMDActor::motionUpdate(){
 	}
 	recursiveMatrixMultipy(&m_boneNodeTable["センター"], XMMatrixIdentity());
 	std::copy(m_boneMatrices.begin(), m_boneMatrices.end(), m_mappedMatrices + 1);
+
+	// アニメーションループ
+	if (frameNo > m_lastFrameNum) {
+		m_startTime = timeGetTime();
+	}
 }
 
