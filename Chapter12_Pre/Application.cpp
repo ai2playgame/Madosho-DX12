@@ -43,7 +43,7 @@ bool Application::init() {
 	m_pmdActor.reset(new PMDActor("Model/初音ミク.pmd", *m_pmdRenderer));
 
 	// アニメーションファイル読み込み
-	m_pmdActor->loadVMDFile("motion/swing.vmd", "pose");
+	m_pmdActor->loadVMDFile("motion/motion.vmd", "pose");
 	m_pmdActor->playAnimation();
 
 	return true;
