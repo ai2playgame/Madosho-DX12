@@ -37,12 +37,14 @@ PMDActor::KeyFrame::KeyFrame(unsigned int fno, const DirectX::XMVECTOR& q, const
 //  publicメソッド実装
 // ---------------------------------------------------------------- //
 
-PMDActor::PMDActor(const char* filepath,PMDRenderer& renderer, float angle)
-	: m_rendererRef(renderer)
-	, m_dx12Ref(renderer.m_dx12Ref)
-	, m_angle(angle)
+PMDActor::PMDActor(const char* filepath, DX12Wrapper& dxRef)
+	: m_dx12Ref(dxRef)
+	, m_pos(0, 0, 0)
+	, m_rotator(0, 0, 0)
 {
-	m_transform.world = XMMatrixIdentity();
+	// m_transformを更新
+	updateTransform();
+
 	loadPMDFile(filepath);
 	createTransformView();
 	createMaterialData();
@@ -64,6 +66,7 @@ void PMDActor::draw() {
 	auto materialH = m_materialHeap->GetGPUDescriptorHandleForHeapStart();
 	unsigned int idxOffset = 0;
 
+	// マテリアルとテクスチャとSPHの合計5
 	auto cbvsrvIncSize = m_dx12Ref.device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 5;
 	for (auto& m : m_materials) {
 		m_dx12Ref.commandList()->SetGraphicsRootDescriptorTable(2, materialH);
@@ -79,9 +82,26 @@ void PMDActor::playAnimation()
 	m_startTime = timeGetTime();
 }
 
+void PMDActor::move(float x, float y, float z)
+{
+	m_pos.x += x;
+	m_pos.y += y;
+	m_pos.z += z;
+	updateTransform();
+}
+
+void PMDActor::rotate(float x, float y, float z)
+{
+	m_rotator.x += x;
+	m_rotator.y += y;
+	m_rotator.z += z;
+	updateTransform();
+}
+
 void PMDActor::update() {
 	// m_angle += 0.01f;
-	m_mappedMatrices[0] = XMMatrixRotationY(m_angle);
+	updateTransform();
+    m_mappedMatrices[0] = m_transform.world;
 	motionUpdate();
 }
 
@@ -615,5 +635,11 @@ void PMDActor::motionUpdate(){
 	if (frameNo > m_lastFrameNum) {
 		m_startTime = timeGetTime();
 	}
+}
+
+void PMDActor::updateTransform()
+{
+	m_transform.world = XMMatrixRotationRollPitchYaw(m_rotator.x, m_rotator.y, m_rotator.z)
+		* XMMatrixTranslation(m_pos.x, m_pos.y, m_pos.z);
 }
 

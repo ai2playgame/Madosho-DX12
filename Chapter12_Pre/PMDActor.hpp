@@ -31,7 +31,7 @@ public:
     // ---------------------------------------------------------------- //
 
     // コンストラクタ・デストラクタ宣言
-    PMDActor(const char *filepath, PMDRenderer &renderer, float angle = 0.f);
+    PMDActor(const char *filepath, DX12Wrapper& dxRef);
     ~PMDActor() = default;  // デストラクタはデフォルト実装
 
     // クローンする際は頂点およびマテリアルは共通のバッファを見るようにする
@@ -42,6 +42,9 @@ public:
     void draw();
 
     void playAnimation();
+
+    void move(float x, float y, float z);
+    void rotate(float x, float y, float z);
 
     // VMDファイル（アニメーション）のロード
     HRESULT loadVMDFile(const char* path, const char* name);
@@ -100,7 +103,6 @@ private:
 
     // 依存モジュール
     // TODO: 参照型をメンバに持つのは危険では？
-    PMDRenderer& m_rendererRef;
     DX12Wrapper& m_dx12Ref;
 
     // 頂点関連
@@ -115,6 +117,8 @@ private:
     ComPtr<ID3D12DescriptorHeap> m_transformHeap = nullptr;
     
     Transform m_transform;
+
+    // [0]にはワールド変換行列を、[1:]にはボーン行列群を入れる
     DirectX::XMMATRIX* m_mappedMatrices = nullptr;
     ComPtr<ID3D12Resource> m_transformBuff = nullptr;
 
@@ -141,8 +145,8 @@ private:
     // モーションデータ保持
     std::unordered_map<std::string, std::vector<KeyFrame>> m_motionData;
 
-    // 動作確認用のY軸回転角
-    float m_angle;
+    DirectX::XMFLOAT3 m_rotator;
+    DirectX::XMFLOAT3 m_pos;
 
     // ---------------------------------------------------------------- //
     //	private メソッド
@@ -165,4 +169,7 @@ private:
     void recursiveMatrixMultipy(BoneNode* node, const DirectX::XMMATRIX& mat);
 
     void motionUpdate();
+
+    // TODO: 冗長。最後にトランスフォーム行列計算すれば十分
+    void updateTransform();
 };
