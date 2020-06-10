@@ -230,8 +230,8 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 
 		// BaseColorテクスチャ用SRV作成
 		if (m_textureResources[i] == nullptr) {
-			srvDesc.Format = m_rendererRef.m_whiteTex->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_whiteTex.Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12Ref.whiteTexture()->GetDesc().Format;
+			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.whiteTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_textureResources[i]->GetDesc().Format;
@@ -241,8 +241,8 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 		
 		// SPHテクスチャ用のSRV作成
 		if (m_sphResources[i] == nullptr) {
-			srvDesc.Format = m_rendererRef.m_whiteTex->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_whiteTex.Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12Ref.whiteTexture()->GetDesc().Format;
+			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.whiteTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_sphResources[i]->GetDesc().Format;
@@ -252,8 +252,8 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 
 		// SPAテクスチャ用のSRV作成
 		if (m_spaResources[i] == nullptr) {
-			srvDesc.Format = m_rendererRef.m_blackTex->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_blackTex.Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12Ref.blackTexture()->GetDesc().Format;
+			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.blackTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_spaResources[i]->GetDesc().Format;
@@ -263,8 +263,8 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 
 		// Toonテクスチャ用のSRV作成
 		if (m_toonResources[i] == nullptr) {
-			srvDesc.Format = m_rendererRef.m_gradTex->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_rendererRef.m_gradTex.Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12Ref.gradTexture()->GetDesc().Format;
+			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.gradTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_toonResources[i]->GetDesc().Format;

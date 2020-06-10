@@ -40,7 +40,7 @@ bool Application::init() {
 	// DirectX12ラッパオブジェクト生成
 	m_dx12.reset(new DX12Wrapper(m_hwnd));
 	m_pmdRenderer.reset(new PMDRenderer(*m_dx12));
-	m_pmdActor.reset(new PMDActor("Model/初音ミク.pmd", *m_pmdRenderer));
+	m_pmdActor.reset(new PMDActor("Model/初音ミク.pmd", *m_dx12));
 
 	// アニメーションファイル読み込み
 	m_pmdActor->loadVMDFile("motion/motion.vmd", "pose");

@@ -27,9 +27,6 @@ PMDRenderer::PMDRenderer(DX12Wrapper& dx12)
 {
     assert(SUCCEEDED(createRootSignature()));
     assert(SUCCEEDED(createGraphicsPipelineForPMD()));
-    m_whiteTex = createWhiteTexture();
-    m_blackTex = createBlackTexture();
-    m_gradTex = createGrayGradationTexture();
 }
 
 PMDRenderer::~PMDRenderer() {
@@ -54,61 +51,6 @@ ID3D12RootSignature* PMDRenderer::getRootSignature() {
 // ---------------------------------------------------------------- //
 //  privateメソッド定義
 // ---------------------------------------------------------------- //
-ID3D12Resource* PMDRenderer::createDefaultTexture(size_t width, size_t height) {
-    auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM,
-        width, height);
-    auto texHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
-        D3D12_MEMORY_POOL_L0);
-    ID3D12Resource* buff = nullptr;
-    auto result = m_dx12Ref.device()->CreateCommittedResource(
-        &texHeapProp,
-        D3D12_HEAP_FLAG_NONE,
-        &resDesc,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        nullptr,
-        IID_PPV_ARGS(&buff)
-    );
-    if (FAILED(result)) {
-        assert(SUCCEEDED(result));
-        return nullptr;
-    }
-    return buff;
-}
-
-ID3D12Resource* PMDRenderer::createWhiteTexture() {
-    ID3D12Resource* texBuff = createDefaultTexture(4, 4);
-    std::vector<unsigned char> data(4 * 4 * 4);
-    std::fill(data.begin(), data.end(), 0xff);
-
-    auto result = texBuff->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
-    assert(SUCCEEDED(result));
-    return texBuff;
-}
-
-ID3D12Resource* PMDRenderer::createBlackTexture() {
-    ID3D12Resource* texBuff = createDefaultTexture(4, 4);
-    std::vector<unsigned char> data(4 * 4 * 4);
-    std::fill(data.begin(), data.end(), 0x00);
-
-    auto result = texBuff->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
-    assert(SUCCEEDED(result));
-    return texBuff;
-}
-
-ID3D12Resource* PMDRenderer::createGrayGradationTexture() {
-    ID3D12Resource* texBuff = createDefaultTexture(4, 256);
-    std::vector<unsigned int> data(4 * 256);
-    auto it = data.begin();
-    unsigned int c = 0xff;
-    for (; it != data.end(); it += 4) {
-        auto col = (c << 0xff) | (c << 16) | (c << 8) | c;
-        std::fill(it, it + 4, col);
-        --c;
-    }
-    auto result = texBuff->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
-    assert(SUCCEEDED(result));
-    return texBuff;
-}
 
 HRESULT PMDRenderer::createGraphicsPipelineForPMD() {
     ComPtr<ID3DBlob> vsBlob = nullptr;

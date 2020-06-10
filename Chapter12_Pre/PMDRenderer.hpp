@@ -56,23 +56,9 @@ private:
     // PMD用のルートシグネチャ
     ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 
-    // PMD用の共通テクスチャ (白・黒・グレースケールグラデーション）
-    ComPtr<ID3D12Resource> m_whiteTex = nullptr;
-    ComPtr<ID3D12Resource> m_blackTex = nullptr;
-    ComPtr<ID3D12Resource> m_gradTex = nullptr;
-
 // ---------------------------------------------------------------- //
 //	privateメソッド
 // ---------------------------------------------------------------- //
-
-    ID3D12Resource* createDefaultTexture(size_t width, size_t height);
-
-    // 白単色テクスチャの作成
-    ID3D12Resource* createWhiteTexture();
-    // 黒単色テクスチャの作成
-    ID3D12Resource* createBlackTexture();
-    // グレースケールグラデーションの作成
-    ID3D12Resource* createGrayGradationTexture();
 
     // パイプラインの初期化
     HRESULT createGraphicsPipelineForPMD();

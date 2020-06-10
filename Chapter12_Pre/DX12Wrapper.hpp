@@ -29,10 +29,17 @@ public:
 	// テクスチャファイルパス
 	ComPtr<ID3D12Resource> getTextureByPath(const char* texpath);
 
+	// ---------------------------------------------------------------- //
+    //  public Getter
+    // ---------------------------------------------------------------- //
+
 	ComPtr<ID3D12Device> device();// デバイス
 	ComPtr<ID3D12GraphicsCommandList> commandList();// コマンドリスト
 	ComPtr<IDXGISwapChain4> swapchain();// スワップチェイン
 
+	ComPtr<ID3D12Resource> whiteTexture();
+	ComPtr<ID3D12Resource> blackTexture();
+	ComPtr<ID3D12Resource> gradTexture();
 
 private:
 
@@ -90,6 +97,11 @@ private:
 	// テクスチャテーブル
 	std::unordered_map<std::string, ComPtr<ID3D12Resource>> m_textureTable;
 
+	// 白・黒・グラデーションテクスチャ
+	ComPtr<ID3D12Resource> m_whiteTex;
+	ComPtr<ID3D12Resource> m_blackTex;
+	ComPtr<ID3D12Resource> m_gradTex;
+
 	// ---------------------------------------------------------------- //
 	//	privateメソッド宣言				                            
 	// ---------------------------------------------------------------- //
@@ -117,5 +129,14 @@ private:
 
 	// テクスチャ名からテクスチャバッファ作成、中身をコピー
 	ID3D12Resource* createTextureFromFile(const char* texpath);
+
+    bool createTextureBuffer(ComPtr<ID3D12Resource>& texBuff, size_t width, size_t height);
+
+    // 白単色テクスチャの作成
+    bool createWhiteTexture();
+    // 黒単色テクスチャの作成
+    bool createBlackTexture();
+    // グレースケールグラデーションの作成
+    bool createGrayGradationTexture();
 
 };

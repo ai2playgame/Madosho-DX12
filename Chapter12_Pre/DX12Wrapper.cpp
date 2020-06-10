@@ -52,6 +52,21 @@ ComPtr<IDXGISwapChain4> DX12Wrapper::swapchain() {
 	return m_swapchain;
 }
 
+ComPtr<ID3D12Resource> DX12Wrapper::whiteTexture()
+{
+	return m_whiteTex;
+}
+
+ComPtr<ID3D12Resource> DX12Wrapper::blackTexture()
+{
+	return m_blackTex;
+}
+
+ComPtr<ID3D12Resource> DX12Wrapper::gradTexture()
+{
+	return m_gradTex;
+}
+
 // ---------------------------------------------------------------- //
 //	public メソッド
 // ---------------------------------------------------------------- //
@@ -98,6 +113,20 @@ DX12Wrapper::DX12Wrapper(HWND hwnd) {
 	// フェンス作成
 	if (FAILED(m_dev->CreateFence(m_fenceVal, D3D12_FENCE_FLAG_NONE,
 								  IID_PPV_ARGS(m_fence.ReleaseAndGetAddressOf())))) {
+		assert(0);
+		return;
+	}
+
+	// 黒白グラデーションテクスチャ一式作成
+	if (!createWhiteTexture()) {
+		assert(0);
+		return;
+	}
+	if (!createBlackTexture()) {
+		assert(0);
+		return;
+	}
+	if (!createGrayGradationTexture()) {
 		assert(0);
 		return;
 	}
@@ -546,4 +575,80 @@ ID3D12Resource* DX12Wrapper::createTextureFromFile(const char* texPath) {
 		return nullptr;
 	}
 	return texBuff;
+}
+
+bool DX12Wrapper::createTextureBuffer(ComPtr<ID3D12Resource>& texBuff, size_t width, size_t height)
+{
+    auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
+    auto texHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
+        D3D12_MEMORY_POOL_L0);
+
+    auto result = m_dev->CreateCommittedResource(
+        &texHeapProp,
+        D3D12_HEAP_FLAG_NONE,
+        &resDesc,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        nullptr,
+        IID_PPV_ARGS(texBuff.ReleaseAndGetAddressOf())
+    );
+    if (FAILED(result)) {
+        assert(SUCCEEDED(result));
+		return false;
+    }
+	return true;
+}
+
+bool DX12Wrapper::createWhiteTexture()
+{
+	if (!createTextureBuffer(m_whiteTex, 4, 4)) {
+		return false;
+	}
+
+    std::vector<unsigned char> data(4 * 4 * 4);
+    std::fill(data.begin(), data.end(), 0xff);
+
+    auto result = m_whiteTex->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
+	if (FAILED(result)) {
+		assert(0);
+		return false;
+	}
+    return true;
+}
+
+bool DX12Wrapper::createBlackTexture()
+{
+	if (!createTextureBuffer(m_blackTex, 4, 4)) {
+		return false;
+	}
+    std::vector<unsigned char> data(4 * 4 * 4);
+    std::fill(data.begin(), data.end(), 0x00);
+
+    auto result = m_blackTex->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
+	if (FAILED(result)) {
+		assert(0);
+		return false;
+	}
+    return true;
+}
+
+bool DX12Wrapper::createGrayGradationTexture()
+{
+	if (!createTextureBuffer(m_gradTex, 4, 256)) {
+		return false;
+	}
+
+    std::vector<unsigned int> data(4 * 256);
+    auto it = data.begin();
+    unsigned int c = 0xff;
+    for (; it != data.end(); it += 4) {
+        auto col = (c << 0xff) | (c << 16) | (c << 8) | c;
+        std::fill(it, it + 4, col);
+        --c;
+    }
+    auto result = m_gradTex->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
+	if (FAILED(result)) {
+		assert(0);
+		return false;
+	}
+	return true;
 }

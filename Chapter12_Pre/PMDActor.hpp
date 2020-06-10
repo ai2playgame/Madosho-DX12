@@ -34,9 +34,6 @@ public:
     PMDActor(const char *filepath, DX12Wrapper& dxRef);
     ~PMDActor() = default;  // デストラクタはデフォルト実装
 
-    // クローンする際は頂点およびマテリアルは共通のバッファを見るようにする
-    PMDActor* clone();
-
     void update();
 
     void draw();
