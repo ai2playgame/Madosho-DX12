@@ -456,8 +456,6 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	// ---------------------------------------------------------------- //
     //  ボーン読み込み
     // ---------------------------------------------------------------- //
-	unsigned short boneNum = 0;
-	fread(&boneNum, sizeof(boneNum), 1, fp);
 #pragma pack(1)
 	struct Bone { // ボーン読み込み用一時構造体
 		char boneName[20]; // ボーン名
@@ -468,6 +466,9 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 		XMFLOAT3 pos; // ボーンの基準点座標
 	};
 #pragma pack()
+
+	unsigned short boneNum = 0;
+	fread(&boneNum, sizeof(boneNum), 1, fp);
 
 	// ファイルからボーン情報を実際に読み込む
 	std::vector<Bone> pmdBones(boneNum);
@@ -500,7 +501,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	fclose(fp);
 }
 
-HRESULT PMDActor::loadVMDFile(const char* path, const char* name)
+HRESULT PMDActor::loadVMDFile(const char* path)
 {
 	auto fp = fopen(path, "rb");
 	// 最初の50バイトは読み飛ばす

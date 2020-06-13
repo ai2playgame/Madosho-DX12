@@ -40,11 +40,25 @@ bool Application::init() {
 	// DirectX12ラッパオブジェクト生成
 	m_dx12.reset(new DX12Wrapper(m_hwnd));
 	m_pmdRenderer.reset(new PMDRenderer(*m_dx12));
-	m_pmdActor.reset(new PMDActor("Model/初音ミク.pmd", *m_dx12));
+	
+	using ActorPtr = std::shared_ptr<PMDActor>;
 
-	// アニメーションファイル読み込み
-	m_pmdActor->loadVMDFile("motion/motion.vmd", "pose");
-	m_pmdActor->playAnimation();
+	ActorPtr miku = std::make_shared<PMDActor>("Model/初音ミク.pmd", *m_dx12);
+	miku->move(0, 0, 0);
+	miku->loadVMDFile("motion/motion.vmd");
+	m_pmdRenderer->addActor(miku);
+
+	ActorPtr ruka = std::make_shared<PMDActor>("Model/巡音ルカ.pmd", *m_dx12);
+	ruka->move(-15, 0, 0);
+	ruka->loadVMDFile("motion/motion.vmd");
+	m_pmdRenderer->addActor(ruka);
+
+	ActorPtr rin = std::make_shared<PMDActor>("Model/鏡音リン.pmd", *m_dx12);
+	rin->move(15, 0, 0);
+	rin->loadVMDFile("motion/motion.vmd");
+	m_pmdRenderer->addActor(rin);
+
+	m_pmdRenderer->beginAnimation();
 
 	return true;
 }
@@ -65,14 +79,14 @@ void Application::run() {
 		}
 
 		m_dx12->beginDraw();
-		m_dx12->commandList()->SetPipelineState(m_pmdRenderer->getPipelineState());
-		m_dx12->commandList()->SetGraphicsRootSignature(m_pmdRenderer->getRootSignature());
+		m_dx12->commandList()->SetPipelineState(m_pmdRenderer->pipelineState());
+		m_dx12->commandList()->SetGraphicsRootSignature(m_pmdRenderer->rootSignature());
 		m_dx12->commandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		m_dx12->setScene();
 
-		m_pmdActor->update();
-		m_pmdActor->draw();
+		m_pmdRenderer->update();
+		m_pmdRenderer->draw();
 
 		m_dx12->endDraw();
 		m_dx12->swapchain()->Present(1, 0);

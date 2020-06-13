@@ -30,15 +30,18 @@ public:
     PMDRenderer(DX12Wrapper& dx12);
 
     ~PMDRenderer();
+    
+    void addActor(std::shared_ptr<PMDActor> actor);
 
     void update();
+    void beginAnimation();
     void draw();
 
 // ---------------------------------------------------------------- //
 //  getter
 // ---------------------------------------------------------------- //
-    ID3D12PipelineState* getPipelineState();
-    ID3D12RootSignature* getRootSignature();
+    ID3D12PipelineState* pipelineState();
+    ID3D12RootSignature* rootSignature();
 
 private:
 // ---------------------------------------------------------------- //
@@ -46,6 +49,9 @@ private:
 // ---------------------------------------------------------------- //
     template <typename T>
     using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+    template <typename T>
+    using Container = std::vector<T>;
 
 // ---------------------------------------------------------------- //
 //  privateメンバ
@@ -55,6 +61,9 @@ private:
     ComPtr<ID3D12PipelineState> m_pipeline = nullptr;
     // PMD用のルートシグネチャ
     ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
+
+    // Rendererが描画するアクターの参照
+    Container<std::shared_ptr<PMDActor>> m_actors;
 
 // ---------------------------------------------------------------- //
 //	privateメソッド

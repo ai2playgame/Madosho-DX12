@@ -3,6 +3,7 @@
 #include <cassert>
 #include <d3dcompiler.h>
 #include "DX12Wrapper.hpp"
+#include "PMDActor.hpp"
 #include <string>
 #include <algorithm>
 
@@ -32,19 +33,35 @@ PMDRenderer::PMDRenderer(DX12Wrapper& dx12)
 PMDRenderer::~PMDRenderer() {
 }
 
-void PMDRenderer::update() {
+void PMDRenderer::addActor(std::shared_ptr<PMDActor> actor)
+{
+    m_actors.push_back(actor);
+}
 
+void PMDRenderer::update() {
+    for (auto& actor : m_actors) {
+        actor->update();
+    }
+}
+
+void PMDRenderer::beginAnimation()
+{
+    for (auto& actor : m_actors) {
+        actor->playAnimation();
+    }
 }
 
 void PMDRenderer::draw() {
-
+    for (auto& actor : m_actors) {
+        actor->draw();
+    }
 }
 
-ID3D12PipelineState* PMDRenderer::getPipelineState() {
+ID3D12PipelineState* PMDRenderer::pipelineState() {
     return m_pipeline.Get();
 }
 
-ID3D12RootSignature* PMDRenderer::getRootSignature() {
+ID3D12RootSignature* PMDRenderer::rootSignature() {
     return m_rootSignature.Get();
 }
 

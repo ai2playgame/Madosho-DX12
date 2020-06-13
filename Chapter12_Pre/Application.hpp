@@ -69,5 +69,4 @@ public:
 	
 	// PMDレンダラ＆アクター
 	std::shared_ptr<PMDRenderer> m_pmdRenderer;
-	std::shared_ptr<PMDActor> m_pmdActor;
 };

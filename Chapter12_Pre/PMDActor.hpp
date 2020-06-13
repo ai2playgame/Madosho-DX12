@@ -44,7 +44,7 @@ public:
     void rotate(float x, float y, float z);
 
     // VMDファイル（アニメーション）のロード
-    HRESULT loadVMDFile(const char* path, const char* name);
+    HRESULT loadVMDFile(const char* path);
 
 private:
     // ---------------------------------------------------------------- //
