@@ -20,10 +20,10 @@ public:
 		// ファイルのフォルダ区切りは\と/の二種類が使用される可能性があり
 		// ともかく末尾の\か/を得られればいいので、双方のrfindをとり比較する
 		// int型に代入しているのは見つからなかった場合はrfindがepos(-1→0xffffffff)を返すため
-		int pathIndex1 = modelPath.rfind('/');
-		int pathIndex2 = modelPath.rfind('\\');
-		auto pathIndex = (std::max)(pathIndex1, pathIndex2);
-		auto folderPath = modelPath.substr(0, pathIndex + 1);
+		auto pathIndex1 = static_cast<int>(modelPath.rfind('/'));
+		auto pathIndex2 = static_cast<int>(modelPath.rfind('\\'));
+		int pathIndex = (std::max)(pathIndex1, pathIndex2);
+		auto folderPath = modelPath.substr(0, static_cast<size_t>(pathIndex) + 1);
 		return folderPath + texPath;
 	}
 

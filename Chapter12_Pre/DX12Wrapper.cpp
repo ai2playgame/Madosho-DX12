@@ -145,7 +145,7 @@ void DX12Wrapper::setScene() {
 
 void DX12Wrapper::beginDraw() {
 	// バックバッファのインデックスを取得
-	auto bbIdx = m_swapchain->GetCurrentBackBufferIndex();
+	size_t bbIdx = m_swapchain->GetCurrentBackBufferIndex();
 
 	// リソースバリアの設定
 	// バックバッファをレンダーターゲット状態に遷移させる
@@ -306,7 +306,6 @@ HRESULT DX12Wrapper::initDXGIDevice() {
 
 	// Direct3Dデバイスの初期化
 	result = S_FALSE;
-	D3D_FEATURE_LEVEL featureLevel;
 	for (auto l : levels) {
 		if (SUCCEEDED(D3D12CreateDevice(usedAdapter, l, IID_PPV_ARGS(m_dev.ReleaseAndGetAddressOf()) ))) {
 			// featureLevel = l; // いらない
@@ -446,7 +445,7 @@ HRESULT DX12Wrapper::createSceneView() {
 	// 定数バッファビュー作成作成
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvdesc{};
 	cbvdesc.BufferLocation = m_sceneConstBuff->GetGPUVirtualAddress();
-	cbvdesc.SizeInBytes = m_sceneConstBuff->GetDesc().Width;
+	cbvdesc.SizeInBytes = static_cast<UINT>(m_sceneConstBuff->GetDesc().Width);
 	m_dev->CreateConstantBufferView(&cbvdesc, heapHandle);
 
 	return result;
@@ -480,7 +479,7 @@ HRESULT DX12Wrapper::createFinalRenderTargets() {
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 
-	for (int i = 0; i < swcDesc.BufferCount; ++i) {
+	for (unsigned int i = 0; i < swcDesc.BufferCount; ++i) {
 		result = m_swapchain->GetBuffer(i, IID_PPV_ARGS(&m_backBuffers[i]));
 		assert(SUCCEEDED(result));
 		rtvDesc.Format = m_backBuffers[i]->GetDesc().Format;
@@ -551,8 +550,9 @@ ID3D12Resource* DX12Wrapper::createTextureFromFile(const char* texPath) {
 	auto texHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
 											   D3D12_MEMORY_POOL_L0);
 	auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D(texMeta.format,
-												texMeta.width, texMeta.height,
-												texMeta.arraySize, texMeta.mipLevels);
+												texMeta.width, static_cast<UINT>(texMeta.height),
+												static_cast<UINT16>(texMeta.arraySize),
+									            static_cast<UINT16>(texMeta.mipLevels));
 
 	// テクスチャ用のGPUリソースを作成
 	ID3D12Resource* texBuff = nullptr;
@@ -569,7 +569,8 @@ ID3D12Resource* DX12Wrapper::createTextureFromFile(const char* texPath) {
 		return nullptr;
 	}
 	// テクスチャデータをGPU上のメモリにコピー
-	result = texBuff->WriteToSubresource(0, nullptr, img->pixels, img->rowPitch, img->slicePitch);
+	result = texBuff->WriteToSubresource(0, nullptr,
+					img->pixels, (UINT)img->rowPitch, (UINT)img->slicePitch);
 	if (FAILED(result)) {
 		assert(0);
 		return nullptr;
@@ -579,7 +580,7 @@ ID3D12Resource* DX12Wrapper::createTextureFromFile(const char* texPath) {
 
 bool DX12Wrapper::createTextureBuffer(ComPtr<ID3D12Resource>& texBuff, size_t width, size_t height)
 {
-    auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
+    auto resDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, width, (UINT)height);
     auto texHeapProp = CD3DX12_HEAP_PROPERTIES(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
         D3D12_MEMORY_POOL_L0);
 
@@ -607,7 +608,9 @@ bool DX12Wrapper::createWhiteTexture()
     std::vector<unsigned char> data(4 * 4 * 4);
     std::fill(data.begin(), data.end(), 0xff);
 
-    auto result = m_whiteTex->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
+    auto result = m_whiteTex->WriteToSubresource(0, nullptr,
+				data.data(), 4 * 4, static_cast<UINT>(data.size()));
+
 	if (FAILED(result)) {
 		assert(0);
 		return false;
@@ -623,7 +626,8 @@ bool DX12Wrapper::createBlackTexture()
     std::vector<unsigned char> data(4 * 4 * 4);
     std::fill(data.begin(), data.end(), 0x00);
 
-    auto result = m_blackTex->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
+    auto result = m_blackTex->WriteToSubresource(0, nullptr,
+				data.data(), 4 * 4, static_cast<UINT>(data.size()));
 	if (FAILED(result)) {
 		assert(0);
 		return false;
@@ -641,11 +645,12 @@ bool DX12Wrapper::createGrayGradationTexture()
     auto it = data.begin();
     unsigned int c = 0xff;
     for (; it != data.end(); it += 4) {
-        auto col = (c << 0xff) | (c << 16) | (c << 8) | c;
+        auto col = (c << 24) | (c << 16) | (c << 8) | c;
         std::fill(it, it + 4, col);
         --c;
     }
-    auto result = m_gradTex->WriteToSubresource(0, nullptr, data.data(), 4 * 4, data.size());
+    auto result = m_gradTex->WriteToSubresource(0, nullptr,
+			data.data(), 4 * 4, static_cast<UINT>(data.size()));
 	if (FAILED(result)) {
 		assert(0);
 		return false;

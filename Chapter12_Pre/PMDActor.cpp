@@ -153,7 +153,7 @@ HRESULT PMDActor::createTransformView() {
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 	cbvDesc.BufferLocation = m_transformBuff->GetGPUVirtualAddress();
-	cbvDesc.SizeInBytes = buffSize;
+	cbvDesc.SizeInBytes = static_cast<UINT>(buffSize);
 	m_dx12->device()->CreateConstantBufferView(&cbvDesc, m_transformHeap->GetCPUDescriptorHandleForHeapStart());
 
 	return S_OK;
@@ -166,7 +166,7 @@ HRESULT PMDActor::createMaterialData() {
 	auto result = m_dx12->device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(materialBuffSize*m_materials.size()),// 勿体ないけど仕方ないですね
+		&CD3DX12_RESOURCE_DESC::Buffer(materialBuffSize * m_materials.size()),// 勿体ないけど仕方ないですね
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(m_materialBuff.ReleaseAndGetAddressOf())
@@ -195,7 +195,8 @@ HRESULT PMDActor::createMaterialData() {
 
 HRESULT PMDActor::createMaterialAndTextureView() {
 	D3D12_DESCRIPTOR_HEAP_DESC materialDescHeapDesc = {};
-	materialDescHeapDesc.NumDescriptors = m_materials.size() * 5; // マテリアル数ぶん(定数1つ、テクスチャ3つ)
+    // マテリアル数ぶん(定数1つ、テクスチャ3つ)
+	materialDescHeapDesc.NumDescriptors = static_cast<UINT>(m_materials.size() * 5);
 	materialDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	materialDescHeapDesc.NodeMask = 0;
 	materialDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // デスクリプタヒープ種別
@@ -210,7 +211,7 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 	materialBuffSize = (materialBuffSize + 0xff)&~0xff;
 	D3D12_CONSTANT_BUFFER_VIEW_DESC matCBVDesc{};
 	matCBVDesc.BufferLocation = m_materialBuff->GetGPUVirtualAddress();
-	matCBVDesc.SizeInBytes = materialBuffSize;
+	matCBVDesc.SizeInBytes = static_cast<UINT>(materialBuffSize);
 	
 	// マテリアルに対応したテクスチャ用のビュー作成
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -272,6 +273,8 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 		}
 		matDescHeapH.ptr += incSize;
 	}
+
+	return S_OK;
 }
 
 HRESULT PMDActor::loadPMDFile(const char* path) {
@@ -301,8 +304,8 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	// ---------------------------------------------------------------- //
     //  頂点情報読み込み（GPUバッファに書き込み・ビュー作成） 
     // ---------------------------------------------------------------- //
-	constexpr unsigned int pmdvertex_size = 38; // 頂点1つあたりのサイズ
-	std::vector<unsigned char> vertices(vertNum * pmdvertex_size); // バッファ確保
+	constexpr size_t pmdvertex_size = 38; // 頂点1つあたりのサイズ
+	std::vector<unsigned char> vertices(static_cast<size_t>(vertNum) * pmdvertex_size); // バッファ確保
 	fread(vertices.data(), vertices.size(), 1, fp); // 一気に読み込み
 
 	unsigned int indicesNum; // インデックス数
@@ -322,7 +325,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	m_vb->Unmap(0, nullptr);
 
 	m_vbView.BufferLocation = m_vb->GetGPUVirtualAddress(); // バッファの仮想アドレス
-	m_vbView.SizeInBytes = vertices.size(); // 全バイト数
+	m_vbView.SizeInBytes = static_cast<UINT>(vertices.size()); // 全バイト数
 	m_vbView.StrideInBytes = pmdvertex_size; // 1頂点あたりのバイト数
 
 	// ---------------------------------------------------------------- //
@@ -349,7 +352,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	// インデックスバッファビューを作成
 	m_ibView.BufferLocation = m_ib->GetGPUVirtualAddress();
 	m_ibView.Format = DXGI_FORMAT_R16_UINT;
-	m_ibView.SizeInBytes = indices.size() * sizeof(indices[0]);
+	m_ibView.SizeInBytes = static_cast<UINT>(indices.size() * sizeof(indices[0]));
 
 	// ---------------------------------------------------------------- //
     //  マテリアル読み込み 
@@ -499,6 +502,8 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	std::fill(m_boneMatrices.begin(), m_boneMatrices.end(), XMMatrixIdentity());
 
 	fclose(fp);
+
+	return S_OK;
 }
 
 HRESULT PMDActor::loadVMDFile(const char* path)
@@ -593,7 +598,7 @@ void PMDActor::recursiveMatrixMultipy(BoneNode* node, const DirectX::XMMATRIX& m
 
 void PMDActor::motionUpdate(){
 	auto elapsedTime = timeGetTime() - m_startTime;//経過時間を測る
-	unsigned int frameNo = 30 * (elapsedTime / 1000.0f);
+	unsigned int frameNo = static_cast<unsigned int>(30 * (elapsedTime / 1000.0f));
 
 	//行列情報クリア(してないと前フレームのポーズが重ね掛けされてモデルが壊れる)
 	std::fill(m_boneMatrices.begin(), m_boneMatrices.end(), XMMatrixIdentity());

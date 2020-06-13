@@ -26,7 +26,7 @@ class Application
 private:
 	// コンストラクタをprivateで宣言
 	// コピーと代入を禁止に
-	Application() = default;
+	Application();
 	Application(const Application&) = delete;
 	void operator=(const Application&) = delete;
 

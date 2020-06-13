@@ -63,6 +63,8 @@ private:
 
     // シェーダには投げられないマテリアルデータ
     struct AdditionalMaterial {
+        AdditionalMaterial() = default;
+
         std::string texPath; // テクスチャファイルパス
         int toonIdx;         // トゥーン番号
         bool edgeFlg;        // マテリアル毎の輪郭線フラグ
@@ -70,6 +72,8 @@ private:
 
     // マテリアル
     struct Material {
+        Material() = default;
+
         unsigned int indicesNum; // インデックス数
         MaterialForHlsl material;
         AdditionalMaterial additional;
@@ -83,6 +87,8 @@ private:
     };
 
     struct BoneNode {
+        BoneNode() = default;
+
         int boneIdx;
         DirectX::XMFLOAT3 startPos;
         std::vector<BoneNode*> children;
