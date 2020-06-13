@@ -59,6 +59,7 @@ void PMDRenderer::draw() {
 
 void PMDRenderer::beforeDraw()
 {
+    // PMDモデル描画用のパイプラインステートとルートシグネチャを設定
     auto cmdList = m_dx12->commandList();
     cmdList->SetPipelineState(m_pipeline.Get());
     cmdList->SetGraphicsRootSignature(m_rootSignature.Get());

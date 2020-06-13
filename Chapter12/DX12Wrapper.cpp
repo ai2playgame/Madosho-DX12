@@ -172,21 +172,14 @@ void DX12Wrapper::clear() {
 			D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	
 	// レンダーターゲットを指定
-	auto rtvH = m_rtvHeaps->GetCPUDescriptorHandleForHeapStart();
-	rtvH.ptr += bbIdx * m_dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	auto rtvHPtr = m_rtvHeaps->GetCPUDescriptorHandleForHeapStart();
+	rtvHPtr.ptr += bbIdx * m_dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-	// 深度を指定
-	auto dsvH = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-	m_cmdList->OMSetRenderTargets(1, &rtvH, false, &dsvH);
-	m_cmdList->ClearDepthStencilView(dsvH, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	m_cmdList->OMSetRenderTargets(1, &rtvHPtr, false, nullptr);
 
 	// 画面クリア
-	float clearColor[] = { 1.f, 0.f, 1.f, 1.f }; // 白色
-	m_cmdList->ClearRenderTargetView(rtvH, clearColor, 0, nullptr);
-
-	// ビューポート、シザー矩形の設定コマンド発行
-	m_cmdList->RSSetViewports(1, m_viewport.get());
-	m_cmdList->RSSetScissorRects(1, m_scissorrect.get());
+	float clearColor[] = { 0.2f, 0.5f, 0.5f, 1.0f };
+	m_cmdList->ClearRenderTargetView(rtvHPtr, clearColor, 0, nullptr);
 }
 
 void DX12Wrapper::flip() {
@@ -195,7 +188,8 @@ void DX12Wrapper::flip() {
 	// バックバッファをレンダーターゲット状態からPresent状態に遷移させる
 	m_cmdList->ResourceBarrier(1,
 		&CD3DX12_RESOURCE_BARRIER::Transition(m_backBuffers[bbIdx],
-			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+			D3D12_RESOURCE_STATE_RENDER_TARGET,
+			D3D12_RESOURCE_STATE_PRESENT));
 
 	// コマンドリストを閉じる（必須！）
 	m_cmdList->Close();
@@ -213,25 +207,36 @@ void DX12Wrapper::flip() {
 		WaitForSingleObject(fenceEvent, INFINITE);
 		CloseHandle(fenceEvent);
 	}
-
-	m_cmdAllocator->Reset(); // コマンドキューをクリア
-	m_cmdList->Reset(m_cmdAllocator.Get(), nullptr); // 次フレームのコマンドを受け入れる準備
 	
+	// コマンドキューをクリア
+	m_cmdAllocator->Reset();
+    // 次フレームのコマンドを受け入れる準備
+	m_cmdList->Reset(m_cmdAllocator.Get(), nullptr); 
+	
+	// バッファを表示 
 	m_swapchain->Present(0, 0);
 }
 
 void DX12Wrapper::draw(std::shared_ptr<PMDRenderer> renderer)
 {
+	// ビューポート・シザー矩形設定
+	m_cmdList->RSSetViewports(1, m_viewport.get());
+	m_cmdList->RSSetScissorRects(1, m_scissorrect.get());
+
+	// ペラポリ用のルートシグネチャ設定
 	m_cmdList->SetGraphicsRootSignature(m_peraRS.Get());
 
 	// ペラポリ用のSRVヒープをセット
 	m_cmdList->SetDescriptorHeaps(1, m_peraSRVHeap.GetAddressOf());
 
-	// パラメータ0番とヒープを関連付ける
+	// s0レジスタとヒープを関連付ける
 	auto handle = m_peraSRVHeap->GetGPUDescriptorHandleForHeapStart();
 	m_cmdList->SetGraphicsRootDescriptorTable(0, handle);
 
+	// ペラポリ用のパイプラインステートを割り当て
 	m_cmdList->SetPipelineState(m_peraPipeline.Get());
+	
+	// ペラポリ描画
 	m_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	m_cmdList->IASetVertexBuffers(0, 1, &m_peraVBView);
 	m_cmdList->DrawInstanced(4, 1, 0, 0);
@@ -249,7 +254,11 @@ HRESULT DX12Wrapper::preDrawToPera1()
 	auto dsvheapPointer = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 	m_cmdList->OMSetRenderTargets(1, &rtvHeapPointer, false, &dsvheapPointer);
 
-	float clsClr[4] = { 0.5, 0.5, 0.5, 1.0 };
+	// レンダーターゲットと深度バッファを初期化
+	float clsClr[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
+	m_cmdList->ClearRenderTargetView(rtvHeapPointer, clsClr, 0, nullptr);
+	m_cmdList->ClearDepthStencilView(dsvheapPointer,
+		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     return S_OK;
 }
@@ -264,6 +273,17 @@ void DX12Wrapper::postDrawToPera1()
 
 void DX12Wrapper::drawToPera1(std::shared_ptr<PMDRenderer> renderer)
 {
+	// ビュー・プロジェクション行列と視点座標のディスクリプタヒープをセット
+	ID3D12DescriptorHeap* heaps[] = { m_sceneDescHeap.Get() };
+	// TODO: 要らない？
+	// heaps[0] = m_sceneDescHeap.Get();
+	m_cmdList->SetDescriptorHeaps(1, heaps);
+	auto sceneHandle = m_sceneDescHeap->GetGPUDescriptorHandleForHeapStart();
+	// ディスクリプタテーブルを設定
+	m_cmdList->SetGraphicsRootDescriptorTable(1, sceneHandle);
+
+	m_cmdList->RSSetViewports(1, m_viewport.get());
+	m_cmdList->RSSetScissorRects(1, m_scissorrect.get());
 }
 
 // ---------------------------------------------------------------- //
@@ -493,7 +513,7 @@ HRESULT DX12Wrapper::createSceneView() {
 	m_mappedSceneData->eye = eye;
 
     // ---------------------------------------------------------------- //
-    //  ディスクリプタヒープ・CBV作成
+    //  CBV用ディスクリプタヒープ・CBV作成
     // ---------------------------------------------------------------- //
 
 	// 定数バッファ用のディスクリプタヒープ作成
@@ -697,7 +717,6 @@ HRESULT DX12Wrapper::createPeraPipeline()
 		return result;
 	}
 
-	// パイプラインステート設定
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpsDesc{};
 	gpsDesc.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
 	gpsDesc.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());

@@ -54,6 +54,7 @@ PMDActor::PMDActor(const char* filepath, std::shared_ptr<DX12Wrapper> dx12)
 void PMDActor::draw() {
 	m_dx12->commandList()->IASetVertexBuffers(0, 1, &m_vbView);
 	m_dx12->commandList()->IASetIndexBuffer(&m_ibView);
+	m_dx12->commandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	ID3D12DescriptorHeap* transheaps[] = {m_transformHeap.Get()};
 	m_dx12->commandList()->SetDescriptorHeaps(1, transheaps);
@@ -100,9 +101,10 @@ void PMDActor::rotate(float x, float y, float z)
 
 void PMDActor::update() {
 	// m_angle += 0.01f;
+	motionUpdate();
+
 	updateTransform();
     m_mappedMatrices[0] = m_transform.world;
-	motionUpdate();
 }
 
 // ---------------------------------------------------------------- //

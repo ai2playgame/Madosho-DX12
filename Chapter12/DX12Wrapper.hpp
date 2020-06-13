@@ -87,16 +87,18 @@ private:
 	std::unique_ptr<D3D12_VIEWPORT> m_viewport; // ビューポート
 	std::unique_ptr<D3D12_RECT> m_scissorrect; // シザー矩形
 
-	// シーンを構成するバッファ等
+	// シーンを構成するバッファ
 	ComPtr<ID3D12Resource> m_sceneConstBuff = nullptr;
 
+	// ビュー・プロジェクション行列と視点座標をまとめて保持する構造体
 	struct SceneData {
 		DirectX::XMMATRIX view;// ビュー行列
 		DirectX::XMMATRIX proj;// プロジェクション行列
 		DirectX::XMFLOAT3 eye;// 視点座標
 	};
-
+	// ビュー・プロジェクション行列と視点座標をCPU上に保持するためのポインタ
 	SceneData* m_mappedSceneData;
+	// シーン情報を書き込むCBV用ディスクリプタヒープ
 	ComPtr<ID3D12DescriptorHeap> m_sceneDescHeap = nullptr;
 
 	// フェンス
