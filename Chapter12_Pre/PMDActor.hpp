@@ -7,6 +7,7 @@
 #include <wrl.h>
 #include <Windows.h>
 #include <unordered_map>
+#include <memory>
 
 // ---------------------------------------------------------------- //
 //	前方宣言
@@ -31,7 +32,7 @@ public:
     // ---------------------------------------------------------------- //
 
     // コンストラクタ・デストラクタ宣言
-    PMDActor(const char *filepath, DX12Wrapper& dxRef);
+    PMDActor(const char *filepath, std::shared_ptr<DX12Wrapper> dx12);
     ~PMDActor() = default;  // デストラクタはデフォルト実装
 
     void update();
@@ -99,8 +100,7 @@ private:
     // ---------------------------------------------------------------- //
 
     // 依存モジュール
-    // TODO: 参照型をメンバに持つのは危険では？
-    DX12Wrapper& m_dx12Ref;
+    std::shared_ptr<DX12Wrapper> m_dx12;
 
     // 頂点関連
     ComPtr<ID3D12Resource> m_vb = nullptr;

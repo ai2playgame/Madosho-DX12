@@ -37,8 +37,8 @@ PMDActor::KeyFrame::KeyFrame(unsigned int fno, const DirectX::XMVECTOR& q, const
 //  publicメソッド実装
 // ---------------------------------------------------------------- //
 
-PMDActor::PMDActor(const char* filepath, DX12Wrapper& dxRef)
-	: m_dx12Ref(dxRef)
+PMDActor::PMDActor(const char* filepath, std::shared_ptr<DX12Wrapper> dx12)
+	: m_dx12(dx12)
 	, m_pos(0, 0, 0)
 	, m_rotator(0, 0, 0)
 {
@@ -52,25 +52,25 @@ PMDActor::PMDActor(const char* filepath, DX12Wrapper& dxRef)
 }
 
 void PMDActor::draw() {
-	m_dx12Ref.commandList()->IASetVertexBuffers(0, 1, &m_vbView);
-	m_dx12Ref.commandList()->IASetIndexBuffer(&m_ibView);
+	m_dx12->commandList()->IASetVertexBuffers(0, 1, &m_vbView);
+	m_dx12->commandList()->IASetIndexBuffer(&m_ibView);
 
 	ID3D12DescriptorHeap* transheaps[] = {m_transformHeap.Get()};
-	m_dx12Ref.commandList()->SetDescriptorHeaps(1, transheaps);
-	m_dx12Ref.commandList()->SetGraphicsRootDescriptorTable(1, m_transformHeap->GetGPUDescriptorHandleForHeapStart());
+	m_dx12->commandList()->SetDescriptorHeaps(1, transheaps);
+	m_dx12->commandList()->SetGraphicsRootDescriptorTable(1, m_transformHeap->GetGPUDescriptorHandleForHeapStart());
 
 	ID3D12DescriptorHeap* mdh[] = { m_materialHeap.Get() };
 	// マテリアル
-	m_dx12Ref.commandList()->SetDescriptorHeaps(1, mdh);
+	m_dx12->commandList()->SetDescriptorHeaps(1, mdh);
 
 	auto materialH = m_materialHeap->GetGPUDescriptorHandleForHeapStart();
 	unsigned int idxOffset = 0;
 
 	// マテリアルとテクスチャとSPHの合計5
-	auto cbvsrvIncSize = m_dx12Ref.device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 5;
+	auto cbvsrvIncSize = m_dx12->device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 5;
 	for (auto& m : m_materials) {
-		m_dx12Ref.commandList()->SetGraphicsRootDescriptorTable(2, materialH);
-		m_dx12Ref.commandList()->DrawIndexedInstanced(m.indicesNum, 1, idxOffset, 0, 0);
+		m_dx12->commandList()->SetGraphicsRootDescriptorTable(2, materialH);
+		m_dx12->commandList()->DrawIndexedInstanced(m.indicesNum, 1, idxOffset, 0, 0);
 		materialH.ptr += cbvsrvIncSize;
 		idxOffset += m.indicesNum;
 	}
@@ -113,7 +113,7 @@ HRESULT PMDActor::createTransformView() {
 	// GPUバッファ作成
 	auto buffSize = sizeof(XMMATRIX) * (1 + m_boneMatrices.size());
 	buffSize = (buffSize + 0xff)&~0xff;
-	auto result = m_dx12Ref.device()->CreateCommittedResource(
+	auto result = m_dx12->device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
 		&CD3DX12_RESOURCE_DESC::Buffer(buffSize),
@@ -144,7 +144,7 @@ HRESULT PMDActor::createTransformView() {
 	transformDescHeapDesc.NodeMask = 0;
 
 	transformDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // デスクリプタヒープ種別
-	result = m_dx12Ref.device()->CreateDescriptorHeap(&transformDescHeapDesc,
+	result = m_dx12->device()->CreateDescriptorHeap(&transformDescHeapDesc,
 		IID_PPV_ARGS(m_transformHeap.ReleaseAndGetAddressOf())); // 生成
 	if (FAILED(result)) {
 		assert(SUCCEEDED(result));
@@ -154,7 +154,7 @@ HRESULT PMDActor::createTransformView() {
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
 	cbvDesc.BufferLocation = m_transformBuff->GetGPUVirtualAddress();
 	cbvDesc.SizeInBytes = buffSize;
-	m_dx12Ref.device()->CreateConstantBufferView(&cbvDesc, m_transformHeap->GetCPUDescriptorHandleForHeapStart());
+	m_dx12->device()->CreateConstantBufferView(&cbvDesc, m_transformHeap->GetCPUDescriptorHandleForHeapStart());
 
 	return S_OK;
 }
@@ -163,7 +163,7 @@ HRESULT PMDActor::createMaterialData() {
 	// マテリアルバッファを作成
 	auto materialBuffSize = sizeof(MaterialForHlsl);
 	materialBuffSize = (materialBuffSize + 0xff)&~0xff;
-	auto result = m_dx12Ref.device()->CreateCommittedResource(
+	auto result = m_dx12->device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
 		&CD3DX12_RESOURCE_DESC::Buffer(materialBuffSize*m_materials.size()),// 勿体ないけど仕方ないですね
@@ -199,7 +199,7 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 	materialDescHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	materialDescHeapDesc.NodeMask = 0;
 	materialDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // デスクリプタヒープ種別
-	auto result = m_dx12Ref.device()->CreateDescriptorHeap(&materialDescHeapDesc, IID_PPV_ARGS(m_materialHeap.ReleaseAndGetAddressOf()));//生成
+	auto result = m_dx12->device()->CreateDescriptorHeap(&materialDescHeapDesc, IID_PPV_ARGS(m_materialHeap.ReleaseAndGetAddressOf()));//生成
 	if (FAILED(result)) {
 		assert(SUCCEEDED(result));
 		return result;
@@ -220,55 +220,55 @@ HRESULT PMDActor::createMaterialAndTextureView() {
 
 	// マテリアル数分CBV+(SRV+SRV+SRV+SRV)、CBV+(SRV+SRV+SRV+SRV)……とビューをディスクリプタヒープに並べる
 	// incSize: CBV,SRV,UAVのディスクリプタサイズ
-	auto incSize = m_dx12Ref.device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	auto incSize = m_dx12->device()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	CD3DX12_CPU_DESCRIPTOR_HANDLE matDescHeapH(m_materialHeap->GetCPUDescriptorHandleForHeapStart());
 	for (int i = 0; i < m_materials.size(); ++i) {
 		// マテリアル用CBV作成
-		m_dx12Ref.device()->CreateConstantBufferView(&matCBVDesc, matDescHeapH);
+		m_dx12->device()->CreateConstantBufferView(&matCBVDesc, matDescHeapH);
 		matCBVDesc.BufferLocation += materialBuffSize;
 		matDescHeapH.ptr += incSize;
 
 		// BaseColorテクスチャ用SRV作成
 		if (m_textureResources[i] == nullptr) {
-			srvDesc.Format = m_dx12Ref.whiteTexture()->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.whiteTexture().Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12->whiteTexture()->GetDesc().Format;
+			m_dx12->device()->CreateShaderResourceView(m_dx12->whiteTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_textureResources[i]->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_textureResources[i].Get(), &srvDesc, matDescHeapH);
+			m_dx12->device()->CreateShaderResourceView(m_textureResources[i].Get(), &srvDesc, matDescHeapH);
 		}
 		matDescHeapH.ptr += incSize;
 		
 		// SPHテクスチャ用のSRV作成
 		if (m_sphResources[i] == nullptr) {
-			srvDesc.Format = m_dx12Ref.whiteTexture()->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.whiteTexture().Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12->whiteTexture()->GetDesc().Format;
+			m_dx12->device()->CreateShaderResourceView(m_dx12->whiteTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_sphResources[i]->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_sphResources[i].Get(), &srvDesc, matDescHeapH);
+			m_dx12->device()->CreateShaderResourceView(m_sphResources[i].Get(), &srvDesc, matDescHeapH);
 		}
 		matDescHeapH.ptr += incSize;
 
 		// SPAテクスチャ用のSRV作成
 		if (m_spaResources[i] == nullptr) {
-			srvDesc.Format = m_dx12Ref.blackTexture()->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.blackTexture().Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12->blackTexture()->GetDesc().Format;
+			m_dx12->device()->CreateShaderResourceView(m_dx12->blackTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_spaResources[i]->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_spaResources[i].Get(), &srvDesc, matDescHeapH);
+			m_dx12->device()->CreateShaderResourceView(m_spaResources[i].Get(), &srvDesc, matDescHeapH);
 		}
 		matDescHeapH.ptr += incSize;
 
 		// Toonテクスチャ用のSRV作成
 		if (m_toonResources[i] == nullptr) {
-			srvDesc.Format = m_dx12Ref.gradTexture()->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_dx12Ref.gradTexture().Get(), &srvDesc, matDescHeapH);
+			srvDesc.Format = m_dx12->gradTexture()->GetDesc().Format;
+			m_dx12->device()->CreateShaderResourceView(m_dx12->gradTexture().Get(), &srvDesc, matDescHeapH);
 		}
 		else {
 			srvDesc.Format = m_toonResources[i]->GetDesc().Format;
-			m_dx12Ref.device()->CreateShaderResourceView(m_toonResources[i].Get(), &srvDesc, matDescHeapH);
+			m_dx12->device()->CreateShaderResourceView(m_toonResources[i].Get(), &srvDesc, matDescHeapH);
 		}
 		matDescHeapH.ptr += incSize;
 	}
@@ -308,7 +308,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	unsigned int indicesNum; // インデックス数
 	fread(&indicesNum, sizeof(indicesNum), 1, fp);
 
-	auto result = m_dx12Ref.device()->CreateCommittedResource(
+	auto result = m_dx12->device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
 		&CD3DX12_RESOURCE_DESC::Buffer(vertices.size()),
@@ -332,7 +332,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 	fread(indices.data(), indices.size() * sizeof(indices[0]), 1, fp); // 一気に読み込み
 
 	// 設定は、バッファのサイズ以外頂点バッファの設定を使いまわしてOK?
-	result = m_dx12Ref.device()->CreateCommittedResource(
+	result = m_dx12->device()->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
 		D3D12_HEAP_FLAG_NONE,
 		&CD3DX12_RESOURCE_DESC::Buffer(indices.size() * sizeof(indices[0])),
@@ -395,7 +395,7 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 		// トゥーンリソースの読み込み
 		char toonFilePath[32];
 		sprintf(toonFilePath, "toon/toon%02d.bmp", (unsigned char)(pmdMaterials[i].toonIdx + 1));
-		m_toonResources[i] = m_dx12Ref.getTextureByPath(toonFilePath);
+		m_toonResources[i] = m_dx12->getTextureByPath(toonFilePath);
 
 		if (strlen(pmdMaterials[i].texFilePath) == 0) {
 			m_textureResources[i] = nullptr;
@@ -441,15 +441,15 @@ HRESULT PMDActor::loadPMDFile(const char* path) {
 		// モデルとテクスチャパスからアプリケーションからのテクスチャパスを得る
 		if (texFileName != "") {
 			auto texFilePath = PathOperator::getTexturePathFromModelAndTexPath(strModelPath, texFileName.c_str());
-			m_textureResources[i] = m_dx12Ref.getTextureByPath(texFilePath.c_str());
+			m_textureResources[i] = m_dx12->getTextureByPath(texFilePath.c_str());
 		}
 		if (sphFileName != "") {
 			auto sphFilePath = PathOperator::getTexturePathFromModelAndTexPath(strModelPath, sphFileName.c_str());
-			m_sphResources[i] = m_dx12Ref.getTextureByPath(sphFilePath.c_str());
+			m_sphResources[i] = m_dx12->getTextureByPath(sphFilePath.c_str());
 		}
 		if (spaFileName != "") {
 			auto spaFilePath = PathOperator::getTexturePathFromModelAndTexPath(strModelPath, spaFileName.c_str());
-			m_spaResources[i] = m_dx12Ref.getTextureByPath(spaFilePath.c_str());
+			m_spaResources[i] = m_dx12->getTextureByPath(spaFilePath.c_str());
 		}
 	}
 

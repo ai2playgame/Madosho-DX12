@@ -39,21 +39,21 @@ bool Application::init() {
 
 	// DirectX12ラッパオブジェクト生成
 	m_dx12.reset(new DX12Wrapper(m_hwnd));
-	m_pmdRenderer.reset(new PMDRenderer(*m_dx12));
+	m_pmdRenderer.reset(new PMDRenderer(m_dx12));
 	
 	using ActorPtr = std::shared_ptr<PMDActor>;
 
-	ActorPtr miku = std::make_shared<PMDActor>("Model/初音ミク.pmd", *m_dx12);
+	ActorPtr miku = std::make_shared<PMDActor>("Model/初音ミク.pmd", m_dx12);
 	miku->move(0, 0, 0);
 	miku->loadVMDFile("motion/motion.vmd");
 	m_pmdRenderer->addActor(miku);
 
-	ActorPtr ruka = std::make_shared<PMDActor>("Model/巡音ルカ.pmd", *m_dx12);
+	ActorPtr ruka = std::make_shared<PMDActor>("Model/巡音ルカ.pmd", m_dx12);
 	ruka->move(-15, 0, 0);
 	ruka->loadVMDFile("motion/motion.vmd");
 	m_pmdRenderer->addActor(ruka);
 
-	ActorPtr rin = std::make_shared<PMDActor>("Model/鏡音リン.pmd", *m_dx12);
+	ActorPtr rin = std::make_shared<PMDActor>("Model/鏡音リン.pmd", m_dx12);
 	rin->move(15, 0, 0);
 	rin->loadVMDFile("motion/motion.vmd");
 	m_pmdRenderer->addActor(rin);

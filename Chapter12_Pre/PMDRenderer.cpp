@@ -23,8 +23,8 @@ void printErrBlob(ID3DBlob* blob) {
 //  publicメソッド定義
 // ---------------------------------------------------------------- //
 
-PMDRenderer::PMDRenderer(DX12Wrapper& dx12)
-    : m_dx12Ref(dx12)
+PMDRenderer::PMDRenderer(std::shared_ptr<DX12Wrapper> dx12)
+    : m_dx12(dx12)
 {
     assert(SUCCEEDED(createRootSignature()));
     assert(SUCCEEDED(createGraphicsPipelineForPMD()));
@@ -136,7 +136,7 @@ HRESULT PMDRenderer::createGraphicsPipelineForPMD() {
     gpipeline.SampleDesc.Quality = 0; // クオリティは最低
 
     // パイプライン作成
-    result = m_dx12Ref.device()->CreateGraphicsPipelineState(&gpipeline,
+    result = m_dx12->device()->CreateGraphicsPipelineState(&gpipeline,
         IID_PPV_ARGS(m_pipeline.ReleaseAndGetAddressOf()));
     if (FAILED(result)) {
         assert(SUCCEEDED(result));
@@ -174,7 +174,7 @@ HRESULT PMDRenderer::createRootSignature() {
         return result;
     }
     
-    result = m_dx12Ref.device()->CreateRootSignature(
+    result = m_dx12->device()->CreateRootSignature(
         0, rootSigBlob->GetBufferPointer(),
         rootSigBlob->GetBufferSize(),
         IID_PPV_ARGS(m_rootSignature.ReleaseAndGetAddressOf())
