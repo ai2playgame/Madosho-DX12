@@ -25,22 +25,21 @@ public:
 	void beginDraw();
 	void endDraw();
 
-	// ペラポリゴンへの描画準備
-	bool preDrawToPera1();
-	// ペラポリゴンへの描画後処理
-	void postDrawToPera1();
-	// ペラポリゴンへの描画
-	// void drawtoPera1(std::shared_ptr<PMDRenderer> renderer);
-
-	void drawHorizontalBokeh();
-
 	// テクスチャパスから必要なテクスチャバッファへのポインタを返す
 	// テクスチャファイルパス
 	ComPtr<ID3D12Resource> getTextureByPath(const char* texpath);
 
+	// ---------------------------------------------------------------- //
+    //  public Getter
+    // ---------------------------------------------------------------- //
+
 	ComPtr<ID3D12Device> device();// デバイス
 	ComPtr<ID3D12GraphicsCommandList> commandList();// コマンドリスト
 	ComPtr<IDXGISwapChain4> swapchain();// スワップチェイン
+
+	ComPtr<ID3D12Resource> whiteTexture();
+	ComPtr<ID3D12Resource> blackTexture();
+	ComPtr<ID3D12Resource> gradTexture();
 
 private:
 
@@ -98,20 +97,10 @@ private:
 	// テクスチャテーブル
 	std::unordered_map<std::string, ComPtr<ID3D12Resource>> m_textureTable;
 
-	// 1枚目のレンダリング用
-	// いわゆるペラポリに貼り付ける為の絵のメモリリソースとそのビュー
-	ComPtr<ID3D12DescriptorHeap> m_peraRTVHeap;
-	ComPtr<ID3D12DescriptorHeap> m_peraSRVHeap;
-	ComPtr<ID3D12DescriptorHeap> m_peraRegisterHeap;
-	ComPtr<ID3D12Resource> m_peraResource;
-
-	// ペラポリ頂点バッファ
-	ComPtr<ID3D12Resource> m_peraVB;
-	D3D12_VERTEX_BUFFER_VIEW m_peraVBV;
-
-	// ペラポリ用パイプライン & ルートシグネチャ
-	ComPtr<ID3D12PipelineState> m_peraPipeline;
-	ComPtr<ID3D12RootSignature> m_peraRS;
+	// 白・黒・グラデーションテクスチャ
+	ComPtr<ID3D12Resource> m_whiteTex;
+	ComPtr<ID3D12Resource> m_blackTex;
+	ComPtr<ID3D12Resource> m_gradTex;
 
 	// ---------------------------------------------------------------- //
 	//	privateメソッド宣言				                            
@@ -141,12 +130,13 @@ private:
 	// テクスチャ名からテクスチャバッファ作成、中身をコピー
 	ID3D12Resource* createTextureFromFile(const char* texpath);
 
-	// 以下Chapter12追加
+    bool createTextureBuffer(ComPtr<ID3D12Resource>& texBuff, size_t width, size_t height);
 
-	// ペラポリの為のリソースとビューを作成
-	bool createPeraResourceAndView();
-
-	bool createPeraVertex();
-	bool createPeraPipeline();
+    // 白単色テクスチャの作成
+    bool createWhiteTexture();
+    // 黒単色テクスチャの作成
+    bool createBlackTexture();
+    // グレースケールグラデーションの作成
+    bool createGrayGradationTexture();
 
 };

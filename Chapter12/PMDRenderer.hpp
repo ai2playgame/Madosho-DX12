@@ -21,24 +21,27 @@ public:
 // ---------------------------------------------------------------- //
 //  publicメンバ 
 // ---------------------------------------------------------------- //
-    DX12Wrapper& m_dx12Ref;
+    std::shared_ptr<DX12Wrapper> m_dx12;
 
 
 // ---------------------------------------------------------------- //
 //  publicメソッド
 // ---------------------------------------------------------------- //
-    PMDRenderer(DX12Wrapper& dx12);
+    PMDRenderer(std::shared_ptr<DX12Wrapper> dx12);
 
     ~PMDRenderer();
+    
+    void addActor(std::shared_ptr<PMDActor> actor);
 
     void update();
+    void beginAnimation();
     void draw();
 
 // ---------------------------------------------------------------- //
 //  getter
 // ---------------------------------------------------------------- //
-    ID3D12PipelineState* getPipelineState();
-    ID3D12RootSignature* getRootSignature();
+    ID3D12PipelineState* pipelineState();
+    ID3D12RootSignature* rootSignature();
 
 private:
 // ---------------------------------------------------------------- //
@@ -46,6 +49,9 @@ private:
 // ---------------------------------------------------------------- //
     template <typename T>
     using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+    template <typename T>
+    using Container = std::vector<T>;
 
 // ---------------------------------------------------------------- //
 //  privateメンバ
@@ -56,23 +62,12 @@ private:
     // PMD用のルートシグネチャ
     ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 
-    // PMD用の共通テクスチャ (白・黒・グレースケールグラデーション）
-    ComPtr<ID3D12Resource> m_whiteTex = nullptr;
-    ComPtr<ID3D12Resource> m_blackTex = nullptr;
-    ComPtr<ID3D12Resource> m_gradTex = nullptr;
+    // Rendererが描画するアクターの参照
+    Container<std::shared_ptr<PMDActor>> m_actors;
 
 // ---------------------------------------------------------------- //
 //	privateメソッド
 // ---------------------------------------------------------------- //
-
-    ID3D12Resource* createDefaultTexture(size_t width, size_t height);
-
-    // 白単色テクスチャの作成
-    ID3D12Resource* createWhiteTexture();
-    // 黒単色テクスチャの作成
-    ID3D12Resource* createBlackTexture();
-    // グレースケールグラデーションの作成
-    ID3D12Resource* createGrayGradationTexture();
 
     // パイプラインの初期化
     HRESULT createGraphicsPipelineForPMD();

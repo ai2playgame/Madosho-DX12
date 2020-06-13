@@ -26,7 +26,7 @@ class Application
 private:
 	// コンストラクタをprivateで宣言
 	// コピーと代入を禁止に
-	Application() = default;
+	Application();
 	Application(const Application&) = delete;
 	void operator=(const Application&) = delete;
 
@@ -69,5 +69,4 @@ public:
 	
 	// PMDレンダラ＆アクター
 	std::shared_ptr<PMDRenderer> m_pmdRenderer;
-	std::shared_ptr<PMDActor> m_pmdActor;
 };
