@@ -57,6 +57,13 @@ void PMDRenderer::draw() {
     }
 }
 
+void PMDRenderer::beforeDraw()
+{
+    auto cmdList = m_dx12->commandList();
+    cmdList->SetPipelineState(m_pipeline.Get());
+    cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
+}
+
 ID3D12PipelineState* PMDRenderer::pipelineState() {
     return m_pipeline.Get();
 }

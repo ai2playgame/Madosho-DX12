@@ -87,18 +87,22 @@ void Application::run() {
 			break;
 		}
 
-		m_dx12->beginDraw();
-		m_dx12->commandList()->SetPipelineState(m_pmdRenderer->pipelineState());
-		m_dx12->commandList()->SetGraphicsRootSignature(m_pmdRenderer->rootSignature());
-		m_dx12->commandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// m_dx12->commandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		m_dx12->setScene();
-
+		// m_dx12->setScene();
+		m_dx12->preDrawToPera1();
+	
 		m_pmdRenderer->update();
+		m_pmdRenderer->beforeDraw();
+		m_dx12->drawToPera1(m_pmdRenderer);
 		m_pmdRenderer->draw();
+		m_dx12->postDrawToPera1();
 
-		m_dx12->endDraw();
-		m_dx12->swapchain()->Present(1, 0);
+		m_dx12->clear();
+		m_dx12->draw(m_pmdRenderer);
+
+		m_dx12->flip();
+
 	}
 }
 

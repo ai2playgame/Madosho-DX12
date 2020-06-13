@@ -5,6 +5,8 @@
 #include <filesystem>
 #include "Application.hpp"
 #include "PathOperator.hpp"
+#include "PMDRenderer.hpp"
+#include "ErrHandler.hpp"
 
 // ---------------------------------------------------------------- //
 //	pragma comment （リンクするライブラリを指定）
@@ -130,20 +132,36 @@ DX12Wrapper::DX12Wrapper(HWND hwnd) {
 		assert(0);
 		return;
 	}
+
+	// マルチパスレンダリング用の描画パス
+	if (FAILED(createPeraResourceAndView())) {
+		assert(0);
+		return;
+	}
+	if (FAILED(createPeraVertex())) {
+		assert(0);
+		return;
+	}
+	if (FAILED(createPeraPipeline())) {
+		assert(0);
+		return;
+	}
 }
 
 void DX12Wrapper::update() {
 
 }
 
+/*
 void DX12Wrapper::setScene() {
 	// 現在のシーン（ビュープロジェクション）をセット
 	ID3D12DescriptorHeap* sceneheap[] = { m_sceneDescHeap.Get() };
 	m_cmdList->SetDescriptorHeaps(1, sceneheap);
 	m_cmdList->SetGraphicsRootDescriptorTable(0, m_sceneDescHeap->GetGPUDescriptorHandleForHeapStart());
 }
+*/
 
-void DX12Wrapper::beginDraw() {
+void DX12Wrapper::clear() {
 	// バックバッファのインデックスを取得
 	size_t bbIdx = m_swapchain->GetCurrentBackBufferIndex();
 
@@ -171,10 +189,9 @@ void DX12Wrapper::beginDraw() {
 	m_cmdList->RSSetScissorRects(1, m_scissorrect.get());
 }
 
-void DX12Wrapper::endDraw() {
+void DX12Wrapper::flip() {
 	auto bbIdx = m_swapchain->GetCurrentBackBufferIndex();
 
-	// リソースバリアの設定
 	// バックバッファをレンダーターゲット状態からPresent状態に遷移させる
 	m_cmdList->ResourceBarrier(1,
 		&CD3DX12_RESOURCE_BARRIER::Transition(m_backBuffers[bbIdx],
@@ -188,6 +205,7 @@ void DX12Wrapper::endDraw() {
 	m_cmdQueue->ExecuteCommandLists(1, cmdList);
 
 	// フェンスを使って描画コマンドが全て実行完了するまで待機
+	// サンプル実装のWaitForCommandQueue()に相当する
 	m_cmdQueue->Signal(m_fence.Get(), ++m_fenceVal);
 	if (m_fence->GetCompletedValue() < m_fenceVal) {
 		auto fenceEvent = CreateEvent(nullptr, false, false, nullptr);
@@ -198,6 +216,54 @@ void DX12Wrapper::endDraw() {
 
 	m_cmdAllocator->Reset(); // コマンドキューをクリア
 	m_cmdList->Reset(m_cmdAllocator.Get(), nullptr); // 次フレームのコマンドを受け入れる準備
+	
+	m_swapchain->Present(0, 0);
+}
+
+void DX12Wrapper::draw(std::shared_ptr<PMDRenderer> renderer)
+{
+	m_cmdList->SetGraphicsRootSignature(m_peraRS.Get());
+
+	// ペラポリ用のSRVヒープをセット
+	m_cmdList->SetDescriptorHeaps(1, m_peraSRVHeap.GetAddressOf());
+
+	// パラメータ0番とヒープを関連付ける
+	auto handle = m_peraSRVHeap->GetGPUDescriptorHandleForHeapStart();
+	m_cmdList->SetGraphicsRootDescriptorTable(0, handle);
+
+	m_cmdList->SetPipelineState(m_peraPipeline.Get());
+	m_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_cmdList->IASetVertexBuffers(0, 1, &m_peraVBView);
+	m_cmdList->DrawInstanced(4, 1, 0, 0);
+}
+
+HRESULT DX12Wrapper::preDrawToPera1()
+{
+	// ペラポリ用のリソースをRenderTarget状態に
+    m_cmdList->ResourceBarrier(1,
+        &CD3DX12_RESOURCE_BARRIER::Transition(m_peraResource.Get(),
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+    auto rtvHeapPointer = m_peraRTVHeap->GetCPUDescriptorHandleForHeapStart();
+	auto dsvheapPointer = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+	m_cmdList->OMSetRenderTargets(1, &rtvHeapPointer, false, &dsvheapPointer);
+
+	float clsClr[4] = { 0.5, 0.5, 0.5, 1.0 };
+
+    return S_OK;
+}
+
+void DX12Wrapper::postDrawToPera1()
+{
+    m_cmdList->ResourceBarrier(1,
+        &CD3DX12_RESOURCE_BARRIER::Transition(m_peraResource.Get(),
+            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+}
+
+void DX12Wrapper::drawToPera1(std::shared_ptr<PMDRenderer> renderer)
+{
 }
 
 // ---------------------------------------------------------------- //
@@ -449,6 +515,221 @@ HRESULT DX12Wrapper::createSceneView() {
 	m_dev->CreateConstantBufferView(&cbvdesc, heapHandle);
 
 	return result;
+}
+
+HRESULT DX12Wrapper::createPeraResourceAndView()
+{
+	// 既に作成済みのバックバッファのDescを再利用
+	auto resDesc = m_backBuffers[0]->GetDesc();
+	D3D12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	// ペラポリゴンの色指定
+	float clearColor[4] = { 0.5, 0.5, 0.5, 1.0 };
+	D3D12_CLEAR_VALUE clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, clearColor);
+	// 実際にペラポリゴンのGPUリソースを作成
+	auto result = m_dev->CreateCommittedResource(&heapProp,
+		D3D12_HEAP_FLAG_NONE, &resDesc,
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		&clearValue, IID_PPV_ARGS(m_peraResource.ReleaseAndGetAddressOf()));
+	if (FAILED(result)) {
+		assert(0);
+		return result;
+	}
+
+	// ペラポリ用のRTV作成
+	
+	// まずRTV用ヒープ作成
+	auto heapDesc = m_rtvHeaps->GetDesc();
+	heapDesc.NumDescriptors = 1;
+	result = m_dev->CreateDescriptorHeap(&heapDesc,
+		IID_PPV_ARGS(m_peraRTVHeap.ReleaseAndGetAddressOf()));
+	if (FAILED(result)) {
+		assert(0);
+		return result;
+	}
+	// 実際にRTVを作成する
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	m_dev->CreateRenderTargetView(m_peraResource.Get(),
+		&rtvDesc, m_peraRTVHeap->GetCPUDescriptorHandleForHeapStart());
+
+	// ペラポリ用のSRV作成
+
+	// まずSRV用ヒープ作成
+	heapDesc.NumDescriptors = 1;
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	result = m_dev->CreateDescriptorHeap(&heapDesc,
+		IID_PPV_ARGS(m_peraSRVHeap.ReleaseAndGetAddressOf()));
+	if (FAILED(result)) {
+		assert(0);
+		return result;
+	}
+	
+	// 実際にSRVを作成する
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Format = rtvDesc.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	m_dev->CreateShaderResourceView(m_peraResource.Get(),
+		&srvDesc, m_peraSRVHeap->GetCPUDescriptorHandleForHeapStart());
+
+
+	return S_OK;
+}
+
+HRESULT DX12Wrapper::createPeraVertex()
+{
+	struct PeraVertex {
+		XMFLOAT3 pos;
+		XMFLOAT2 uv;
+	};
+	PeraVertex pv[4] = { {{-1,-1,0.1f},{0,1}},
+						{{-1,1,0.1f},{0,0}},
+						{{1,-1,0.1f},{1,1}},
+						{{1,1,0.1f},{1,0}} };
+	// 頂点バッファを作成
+	auto result = m_dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(pv)),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(m_peraVB.ReleaseAndGetAddressOf())
+	);
+	if (FAILED(result)) {
+		assert(0);
+		return result;
+	}
+
+	// 頂点バッファをマップして書き込み
+	PeraVertex* mappedPera = nullptr;
+	m_peraVB->Map(0, nullptr, (void**)&mappedPera);
+	std::copy(std::begin(pv), std::end(pv), mappedPera);
+	m_peraVB->Unmap(0, nullptr);
+	
+	// 頂点バッファビュー作成
+	m_peraVBView.BufferLocation = m_peraVB->GetGPUVirtualAddress();
+	m_peraVBView.SizeInBytes = sizeof(pv);
+	m_peraVBView.StrideInBytes = sizeof(PeraVertex);
+
+	return S_OK;
+}
+
+HRESULT DX12Wrapper::createPeraPipeline()
+{
+    HRESULT result;
+    ComPtr<ID3DBlob> errBlob;
+
+	// ---------------------------------------------------------------- //
+    //  ディスクリプタレンジ設定
+    // ---------------------------------------------------------------- //
+	D3D12_DESCRIPTOR_RANGE range{};
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	range.BaseShaderRegister = 0;
+	range.NumDescriptors = 1;
+	
+	// ---------------------------------------------------------------- //
+    //  ルートパラメータ設定
+    // ---------------------------------------------------------------- //
+	D3D12_ROOT_PARAMETER rootParam{};
+	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParam.DescriptorTable.pDescriptorRanges = &range;
+	rootParam.DescriptorTable.NumDescriptorRanges = 1;
+
+	// ---------------------------------------------------------------- //
+    //  サンプラー設定
+    // ---------------------------------------------------------------- //
+	D3D12_STATIC_SAMPLER_DESC sampler = CD3DX12_STATIC_SAMPLER_DESC(0);
+
+	// ---------------------------------------------------------------- //
+    //  ルートシグネチャ設定
+    // ---------------------------------------------------------------- //
+	D3D12_ROOT_SIGNATURE_DESC rsDesc;
+	rsDesc.NumParameters = 1;
+	rsDesc.pParameters = &rootParam;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &sampler;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	
+	ComPtr<ID3DBlob> rsBlob;
+	result = D3D12SerializeRootSignature(&rsDesc,
+		D3D_ROOT_SIGNATURE_VERSION_1,
+		rsBlob.ReleaseAndGetAddressOf(), errBlob.ReleaseAndGetAddressOf());
+	if (!ErrHandler::checkResult(result, errBlob.Get())) {
+		assert(0);
+		return result;
+	}
+	result = m_dev->CreateRootSignature(0,
+		rsBlob->GetBufferPointer(), rsBlob->GetBufferSize(),
+		IID_PPV_ARGS((m_peraRS.ReleaseAndGetAddressOf())));
+	if (FAILED(result)) {
+		assert(0);
+		return result;
+	}
+	
+	// ---------------------------------------------------------------- //
+    //  シェーダコンパイル
+    // ---------------------------------------------------------------- //
+    ComPtr<ID3DBlob> vsBlob;
+    ComPtr<ID3DBlob> psBlob;
+    result = D3DCompileFromFile(
+        L"PeraVertexShader.hlsl", nullptr,
+        D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        "PeraVS", "vs_5_0", 0, 0,
+        vsBlob.ReleaseAndGetAddressOf(),
+        errBlob.ReleaseAndGetAddressOf());
+    if (!ErrHandler::checkResult(result, errBlob.Get())) {
+        assert(0);
+        return result;
+    }
+	result = D3DCompileFromFile(
+		L"PeraPixelShader.hlsl", nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"PeraPS", "ps_5_0", 0, 0,
+		psBlob.ReleaseAndGetAddressOf(),
+		errBlob.ReleaseAndGetAddressOf()
+	);
+	if (!ErrHandler::checkResult(result, errBlob.Get())) {
+		assert(0);
+		return result;
+	}
+
+	// パイプラインステート設定
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpsDesc{};
+	gpsDesc.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
+	gpsDesc.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());
+	gpsDesc.DepthStencilState.DepthEnable = false;
+	gpsDesc.DepthStencilState.StencilEnable = false;
+
+    // ペラポリゴンの頂点シェーダに流す頂点レイアウト
+    D3D12_INPUT_ELEMENT_DESC layout[2] = {
+        { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+        { "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+    };
+	gpsDesc.InputLayout.NumElements = _countof(layout);
+	gpsDesc.InputLayout.pInputElementDescs = layout;
+	gpsDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	gpsDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	gpsDesc.NumRenderTargets = 1;
+	gpsDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	gpsDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	gpsDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+	gpsDesc.SampleDesc.Count = 1;
+	gpsDesc.SampleDesc.Quality = 0;
+	gpsDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	gpsDesc.pRootSignature = m_peraRS.Get();
+
+	result = m_dev->CreateGraphicsPipelineState(
+		&gpsDesc, IID_PPV_ARGS(m_peraPipeline.ReleaseAndGetAddressOf()));
+	if (FAILED(result)) {
+		assert(0);
+		return result;
+	}
+
+    return S_OK;
 }
 
 HRESULT DX12Wrapper::createFinalRenderTargets() {

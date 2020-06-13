@@ -10,6 +10,11 @@
 #include<functional>
 #include <memory>
 
+// ---------------------------------------------------------------- //
+//  前方宣言
+// ---------------------------------------------------------------- //
+class PMDRenderer;
+
 class DX12Wrapper
 {
 	template<typename T>
@@ -21,13 +26,23 @@ public:
 	~DX12Wrapper() = default;
 
 	void update();
-	void setScene();
-	void beginDraw();
-	void endDraw();
+	// void setScene();
+	void clear();
+	void flip();
+
+	// TODO:
+	void draw(std::shared_ptr<PMDRenderer> renderer);
 
 	// テクスチャパスから必要なテクスチャバッファへのポインタを返す
 	// テクスチャファイルパス
 	ComPtr<ID3D12Resource> getTextureByPath(const char* texpath);
+
+	// ペラポリ1つ目をDrawする前に呼び出す
+	HRESULT preDrawToPera1();
+	// ペラポリ1つ目をDrawした後に呼び出す
+	void postDrawToPera1();
+	// ペラポリ1つ目の描画
+	void drawToPera1(std::shared_ptr<PMDRenderer> renderer);
 
 	// ---------------------------------------------------------------- //
     //  public Getter
@@ -102,6 +117,15 @@ private:
 	ComPtr<ID3D12Resource> m_blackTex;
 	ComPtr<ID3D12Resource> m_gradTex;
 
+	// マルチパスレンダリングの為の平面ポリゴン用メンバ
+	ComPtr<ID3D12Resource> m_peraResource;
+	ComPtr<ID3D12DescriptorHeap> m_peraRTVHeap; // RTVとして扱う時のビュー
+	ComPtr<ID3D12DescriptorHeap> m_peraSRVHeap; // SRVとして扱う時のビュー
+	ComPtr<ID3D12Resource> m_peraVB;	// 平面ポリゴン頂点バッファ
+	D3D12_VERTEX_BUFFER_VIEW m_peraVBView; // 頂点バッファ用ビュー
+	ComPtr<ID3D12RootSignature> m_peraRS; // ルートシグネチャ
+	ComPtr<ID3D12PipelineState> m_peraPipeline; // パイプラインステート
+
 	// ---------------------------------------------------------------- //
 	//	privateメソッド宣言				                            
 	// ---------------------------------------------------------------- //
@@ -123,6 +147,15 @@ private:
 
 	// ビュープロジェクション用ビューの生成
 	HRESULT createSceneView();
+
+	// ペラポリゴンのリソースとビューの生成
+	HRESULT createPeraResourceAndView();
+
+	// ペラポリ頂点作成
+	HRESULT createPeraVertex();
+
+	// ペラポリ描画用のパイプラインステート作成
+	HRESULT createPeraPipeline();
 
 	// テクスチャローダテーブルの作成
 	void createTextureLoaderTable();
