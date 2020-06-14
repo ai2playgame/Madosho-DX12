@@ -101,10 +101,10 @@ void PMDActor::rotate(float x, float y, float z)
 
 void PMDActor::update() {
 	// m_angle += 0.01f;
-	motionUpdate();
-
 	updateTransform();
     m_mappedMatrices[0] = m_transform.world;
+
+	motionUpdate();
 }
 
 // ---------------------------------------------------------------- //

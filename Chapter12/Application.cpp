@@ -102,7 +102,6 @@ void Application::run() {
 		m_dx12->draw(m_pmdRenderer);
 
 		m_dx12->flip();
-
 	}
 }
 

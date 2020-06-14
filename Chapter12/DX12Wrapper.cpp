@@ -149,7 +149,7 @@ DX12Wrapper::DX12Wrapper(HWND hwnd) {
 }
 
 void DX12Wrapper::update() {
-
+	m_cmdList->SetGraphicsRootDescriptorTable(0, m_sceneDescHeap->GetGPUDescriptorHandleForHeapStart());
 }
 
 /*
@@ -178,7 +178,7 @@ void DX12Wrapper::clear() {
 	m_cmdList->OMSetRenderTargets(1, &rtvHPtr, false, nullptr);
 
 	// 画面クリア
-	float clearColor[] = { 0.2f, 0.5f, 0.5f, 1.0f };
+	float clearColor[] = { 0.0f, 1.0f, 0.0f, 1.0f };
 	m_cmdList->ClearRenderTargetView(rtvHPtr, clearColor, 0, nullptr);
 }
 
@@ -250,13 +250,13 @@ HRESULT DX12Wrapper::preDrawToPera1()
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
             D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-    auto rtvHeapPointer = m_peraRTVHeap->GetCPUDescriptorHandleForHeapStart();
+    auto peraRTVHPointer = m_peraRTVHeap->GetCPUDescriptorHandleForHeapStart();
 	auto dsvheapPointer = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-	m_cmdList->OMSetRenderTargets(1, &rtvHeapPointer, false, &dsvheapPointer);
+	m_cmdList->OMSetRenderTargets(1, &peraRTVHPointer, false, &dsvheapPointer);
 
 	// レンダーターゲットと深度バッファを初期化
-	float clsClr[4] = { 0.0f, 0.5f, 0.5f, 1.0f };
-	m_cmdList->ClearRenderTargetView(rtvHeapPointer, clsClr, 0, nullptr);
+	float clearColor[4] = { 0.2f, 0.5f, 0.5f, 1.0f };
+	m_cmdList->ClearRenderTargetView(peraRTVHPointer, clearColor, 0, nullptr);
 	m_cmdList->ClearDepthStencilView(dsvheapPointer,
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
@@ -280,7 +280,7 @@ void DX12Wrapper::drawToPera1(std::shared_ptr<PMDRenderer> renderer)
 	m_cmdList->SetDescriptorHeaps(1, heaps);
 	auto sceneHandle = m_sceneDescHeap->GetGPUDescriptorHandleForHeapStart();
 	// ディスクリプタテーブルを設定
-	m_cmdList->SetGraphicsRootDescriptorTable(1, sceneHandle);
+	m_cmdList->SetGraphicsRootDescriptorTable(0, sceneHandle);
 
 	m_cmdList->RSSetViewports(1, m_viewport.get());
 	m_cmdList->RSSetScissorRects(1, m_scissorrect.get());
@@ -543,7 +543,7 @@ HRESULT DX12Wrapper::createPeraResourceAndView()
 	auto resDesc = m_backBuffers[0]->GetDesc();
 	D3D12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	// ペラポリゴンの色指定
-	float clearColor[4] = { 0.5, 0.5, 0.5, 1.0 };
+	float clearColor[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
 	D3D12_CLEAR_VALUE clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, clearColor);
 	// 実際にペラポリゴンのGPUリソースを作成
 	auto result = m_dev->CreateCommittedResource(&heapProp,
@@ -609,6 +609,7 @@ HRESULT DX12Wrapper::createPeraVertex()
 						{{-1,1,0.1f},{0,0}},
 						{{1,-1,0.1f},{1,1}},
 						{{1,1,0.1f},{1,0}} };
+
 	// 頂点バッファを作成
 	auto result = m_dev->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
@@ -646,8 +647,8 @@ HRESULT DX12Wrapper::createPeraPipeline()
     //  ディスクリプタレンジ設定
     // ---------------------------------------------------------------- //
 	D3D12_DESCRIPTOR_RANGE range{};
-	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	range.BaseShaderRegister = 0;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; // tレジスタ
+	range.BaseShaderRegister = 0; // 0番目
 	range.NumDescriptors = 1;
 	
 	// ---------------------------------------------------------------- //
